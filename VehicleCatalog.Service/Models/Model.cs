@@ -10,7 +10,7 @@ namespace VehicleCatalog.Service.Models
         public string Name { get; set; }
         public string Abrv { get; set; }
 
-        public Make make { get; set; }
+        public Make Make { get; set; }
         public int MakeId { get; set; }
 
     }
