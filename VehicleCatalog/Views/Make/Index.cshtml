@@ -1,0 +1,21 @@
+﻿@model VehicleCatalog.Models.MakeView.MakeIndexModel
+
+<h1>List of automotive manufacturers </h1>
+
+<table class="table table-hover" id="makeIndexTable"> 
+    <tbody>
+       @foreach (var make in Model.MakeList)
+       {
+           <tr>
+               <td>
+                   <a asp-controller="Make" asp-action="Detail" asp-route-id="@make.Id">
+                   @make.Name
+                   </a>
+               </td>
+               <td>
+                   @make.Abrv
+               </td>
+           </tr>
+       }
+    </tbody>
+</table>
