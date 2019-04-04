@@ -14,8 +14,4 @@
     <ProjectReference Include="..\VehicleCatalog.Service\VehicleCatalog.Service.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models\ModelView\" />
-  </ItemGroup>
-
 </Project>

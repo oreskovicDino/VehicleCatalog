@@ -1,0 +1,46 @@
+﻿@model VehicleCatalog.Models.ModelView.DetailModel
+
+
+
+<div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkred; margin-top: 20px;">
+    <h2 class="text-danger">Detail View of Model</h2>
+    <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
+
+    <div class="row">
+
+        <div class="col-lg-5">
+            <h4>Model Name: <span class="text-danger">@Model.ModelDetail.Name</span></h4>
+            <h4>Model manufacturer: <a asp-controller="Make" asp-action="Detail" asp-route-id="@Model.MakeDetail.Id" class="text-danger">@Model.MakeDetail.Name</a></h4>
+            <h4>Model manufacturers abbreviation: <span class="text-danger">( @Model.MakeDetail.Abrv )</span></h4>
+
+            <hr class="my-2" style="height: 1px; background-color: darkred;" />
+        </div>
+
+        <div class="col-lg-7">
+            <div class="btn-group-sm  text-center">
+
+                <a asp-action="Delete" asp-route-id="@Model.ModelDetail.Id" onclick="return confirm('Are you sure to delete this record?')" class="btn btn-sm btn-danger">Delete</a>
+                <button class="btn  btn-warning" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                    Show Edit Form
+                </button>
+            </div>
+
+            <div class="collapse col-7" id="collapseExample">
+                <hr class="my-2" style="height: .5px; background-color: darkblue;" />
+                <form asp-action="Update" method="post" id="updateModelForm">
+                    <div class="form-group">
+                        <label asp-for="@Model.Name">Update Name of Model</label>
+                        <input asp-for="@Model.Name" class="form-control" />
+                        <input asp-for="@Model.Id" type="hidden" />
+                        <input asp-for="@Model.MakeId" type="hidden" />
+                    </div>
+                    <button type="submit" id="submitModelBtn" class="btn btn-info" onclick="return confirm('Are you Sure')">Update</button>
+                </form>
+            </div>
+            <hr class="my-2" style="height: 1px; background-color: darkred;" />
+        </div>
+
+    </div>
+</div>
+
+

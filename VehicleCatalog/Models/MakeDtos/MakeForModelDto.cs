@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace VehicleCatalog.Models.MakeDtos
 {
-    public class MakeForDetailDto
+    public class MakeForModelDto
     {
         public int Id { get; set; }
         public string Name { get; set; }

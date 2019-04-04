@@ -1,0 +1,29 @@
+﻿@model VehicleCatalog.Models.ModelView.CreateModel
+
+<div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkblue; margin-top: 20px;">
+    <h2 style="color: darkblue;">Create Model</h2>
+    <hr class="my-2" style="height: .5px; background-color: darkblue;" />
+    <div class="row">
+        <div class="col-lg-5">
+            <hr class="my-2" style="height: 1px; background-color: darkblue;" />
+            <h4>Model manufacturer: <span class="text-danger">@Model.Make.Name</span></h4>
+            <h4>Model manufacturers abbreviation: <span class="text-danger">(@Model.Make.Abrv)</span></h4>
+            <hr class="my-2" style="height: 1px; background-color: darkblue;" />
+        </div>
+        <div class="col-lg-7">
+            <hr class="my-2" style="height: 1px; background-color: darkblue;" />
+            <form asp-action="AddModel" method="post" id="addModelForm">
+                <div class="form-group">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" class="form-control" />
+                </div>
+                <input asp-for="Abrv" type="hidden" />
+                <input asp-for="MakeId" type="hidden" />
+                <button type="submit" id="submitMakeBtn" class="btn btn-info">Add New Model</button>
+            </form>
+            <hr class="my-2" style="height: 1px; background-color: darkblue;" />
+        </div>
+    </div>
+
+</div>
+

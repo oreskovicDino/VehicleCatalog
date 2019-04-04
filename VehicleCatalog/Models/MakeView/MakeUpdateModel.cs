@@ -4,13 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using VehicleCatalog.Models.MakeDtos;
 using VehicleCatalog.Models.ModelDto;
+using VehicleCatalog.Service.Models;
 
 namespace VehicleCatalog.Models.MakeView
 {
-    public class MakeDetailModel
+    public class MakeUpdateModel
     {
-        public MakeForDetailDto MakeDetail { get; set; }
         public IEnumerable<ModelListForMakeDto> ModelList { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
+        public string Abrv { get; set; }
     }
 }

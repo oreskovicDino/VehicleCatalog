@@ -1,21 +1,98 @@
 ﻿@model VehicleCatalog.Models.MakeView.MakeIndexModel
 
-<h1>List of automotive manufacturers </h1>
+<div class="row container" style="margin-top: 20px;">
 
-<table class="table table-hover" id="makeIndexTable"> 
-    <tbody>
-       @foreach (var make in Model.MakeList)
-       {
-           <tr>
-               <td>
-                   <a asp-controller="Make" asp-action="Detail" asp-route-id="@make.Id">
-                   @make.Name
-                   </a>
-               </td>
-               <td>
-                   @make.Abrv
-               </td>
-           </tr>
-       }
-    </tbody>
-</table>
+    <div class="col-lg-5 ">
+        <div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkblue;">
+
+            <h2 style="color:darkblue;">Manufacturers administration</h2>
+
+            <hr class="my-4" style="background-color: darkblue; height: 1px;">
+
+            <div class="container">
+
+            <form asp-controller="Make" asp-action="Index" method="post">
+                <div class="row input-group">
+                    <input name="search" id="search" class="form-control" type="text" placeholder="Search">
+                    <div class="input-group-btn">
+                        <input type="submit" value="Search" class="btn btn-info" />
+
+                    </div>
+                </div>
+            </form>
+            </div>
+
+            <hr class="my-4" style="background-color: darkblue; height: 1px;">
+            <div>
+                <form asp-action="AddMake" method="post" id="addMakeForm">
+                    <div class="form-group">
+                        <label asp-for="Name"></label>
+                        <input asp-for="Name" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Abrv"></label>
+                        <input asp-for="Abrv" class="form-control" />
+                    </div>
+                    <button type="submit" id="submitModel2Btn" class="btn btn-info">Add New Manufacturer</button>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="col-lg-7">
+        <div class="jumbotron  img-rounded" style="border:solid 1px; border-color: darkgreen;">
+            <h2 style="color:darkgreen;">List of automotive manufacturers </h2>
+            <hr class="my-4" style="background-color: darkgreen; height: 1px;">
+
+            <button class="btn btn-block btn-sm btn-success" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                Show manufacturers
+            </button>
+
+
+            <div class="collapse" id="collapseExample">
+                <div class="card card-body">
+                    <hr class="my-4" style="background-color: darkgreen; height: 1px;">
+                    <table class="table table-hover" id="makeIndexTable">
+
+                        <thead class="h5">
+                            <tr>
+                                <th scope="col">Manufacturer Name</th>
+                                <th scope="col">Manufacturer Abrv.</th>
+                                <th scope="col">Edit / Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var make in Model.MakeList)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-controller="Make" asp-action="Detail" asp-route-id="@make.Id" class="btn btn-block btn-success">
+                                            @make.Name
+                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        @make.Abrv
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="Update" asp-route-id="@make.Id" class="btn btn-sm btn-warning">Edit</a>
+                                        <a asp-action="Delete" asp-route-id="@make.Id" onclick="return confirm('Are you sure to delete this record?')" class="btn btn-sm btn-danger">Delete</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <hr class="my-4" style="background-color: darkgreen; height: 1px;">
+
+        </div>
+
+    </div>
+</div>
+
+
+

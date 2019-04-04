@@ -39,6 +39,7 @@ namespace VehicleCatalog.Service.Migrations
                         column: x => x.MakeId,
                         principalTable: "Makes",
                         principalColumn: "Id",
+                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Cascade);
                 });
 

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace VehicleCatalog.Models.MakeDtos
+namespace VehicleCatalog.Models.ModelDto
 {
-    public class MakeForDetailDto
+    public class ModelForListDto
     {
         public int Id { get; set; }
         public string Name { get; set; }

@@ -1,19 +1,53 @@
 ﻿@model VehicleCatalog.Models.MakeView.MakeDetailModel
 
-<h1>Detail View of @Model.MakeDetail.Name (@Model.MakeDetail.Abrv)</h1>
+<div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkgreen; margin-top: 20px;">
+    <h2 style="color:darkgreen;">Detail View of Manufacturer</h2>
+    <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
+    <div class="row">
+        <div class="col-lg-5">
+            <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
+            <h4>Manufacturer Name: <span class="text-success">@Model.MakeDetail.Name</span></h4>
+            <h4>Manufacturer abbreviation: <span class="text-success">( @Model.MakeDetail.Abrv )</span></h4>
+            <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
+            <a asp-controller="Model" asp-action="Create" asp-route-id="@Model.MakeDetail.Id" class="btn btn-block btn-success">Add New Model</a>
+            
 
-<table class="table table-hover" id="makeIndexTable">
-    <tbody>
-        @foreach (var m in Model.ModelList)
-        {
-            <tr>
-                <td>
-                    @m.Name
-                </td>
-                <td>
-                    @m.Abrv
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+            <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
+
+
+        </div>
+        <div class="col-lg-7">
+            <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
+            <table class="table table-hover" id="makeIndexTable">
+                <thead class="h5">
+                    <tr>
+                        <th scope="col">Manufacturer Name</th>
+                        <th scope="col">Manufacturer Abrv.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Model.ModelList)
+                    {
+                        <tr class="text-center">
+                            <td>
+                                <a asp-controller="Model" asp-action="Detail" asp-route-id="@m.Id" class="btn btn-block btn-success">
+                                    @m.Name
+                                </a>
+                            </td>
+                            <td>
+                                @m.Abrv
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
+        </div>
+    </div>
+
+
+</div>
+
+
+
+

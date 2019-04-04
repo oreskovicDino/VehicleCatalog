@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VehicleCatalog.Models.MakeDtos;
+using VehicleCatalog.Models.ModelDto;
 
-namespace VehicleCatalog.Models.MakeView
+namespace VehicleCatalog.Models.ModelView
 {
-    public class MakeIndexModel
-    {        
+    public class ModelIndexModel
+    {
+        public IEnumerable<ModelForListDto> ModelList { get; set; }
         public IEnumerable<MakeForListDto> MakeList { get; set; }
+        public int MakeId { get; set; }
         public string Name { get; set; }
-        public string Abrv { get; set; }
-        public string SearchQuery { get; set; }
-
     }
 }

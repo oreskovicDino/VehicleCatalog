@@ -1,0 +1,90 @@
+﻿@model VehicleCatalog.Models.ModelView.ModelIndexModel
+
+
+<div class="row container" style="margin-top: 20px;">
+    <div class="col-lg-5">
+        <div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkblue;">
+            <h2 class="text-info">Model administration</h2>
+            <hr class="my-4" style="background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%); height: 1px;">
+            <div class="container">
+
+                <form asp-controller="Model" asp-action="Index" method="post">
+                    <div class="row input-group">
+                        <input name="search" id="search" class="form-control" type="text" placeholder="Search">
+                        <div class="input-group-btn">
+                            <input type="submit" value="Search" class="btn btn-info" />
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <hr class="my-4" style="background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%); height: 0.5px;">
+            <form asp-action="AddModel2" method="post" id="addModel2Form">
+
+
+                <div class="form-group">
+                    <label asp-for="Name">Name of Model</label>
+                    <input asp-for="Name" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label asp-for="MakeId">Manufacturer</label>
+                    <select asp-for="MakeId" class="form-control">
+                        @foreach (var make in Model.MakeList)
+                        {
+                            <option value="@make.Id">@make.Name</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" id="submitModelBtn" class="btn btn-success">Add New Model</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-7">
+
+        <div class="jumbotron  img-rounded" style="border:solid 1px; border-color: darkred;">
+            <h2 class="text-danger ">
+                List of automotive Models
+            </h2>
+            <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
+            <button class="btn btn-sm btn-block btn-danger" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                Show Models
+            </button>
+
+
+            <div class="collapse" id="collapseExample">
+                <div class="card card-body">
+                    <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
+                    <table class="table table-hover" id="makeIndexTable" style="height: 10px !important;">
+                        <thead class="h5">
+                            <tr>
+                                <th scope="col">Model Name</th>
+                                <th scope="col">Make Abrv.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var m in Model.ModelList)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-controller="Model" asp-action="Detail" asp-route-id="@m.Id" class="btn btn-danger btn-block">
+                                            @m.Name
+                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        @m.Abrv
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+            <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
+
+
+
+        </div>
+    </div>
+
+</div>

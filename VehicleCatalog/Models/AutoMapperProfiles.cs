@@ -13,8 +13,19 @@ namespace VehicleCatalog.Models
     {
         public AutoMapperProfiles()
         {
+            CreateMap<Make, MakeForCreationDto>().ReverseMap();
+            CreateMap<Make, MakeForDetailDto>().ReverseMap();
             CreateMap<Make, MakeForListDto>().ReverseMap();
-            CreateMap<Make, ModelListForMakeDto>().ReverseMap();
+            CreateMap<Make, MakeForModelDto>().ReverseMap();
+            CreateMap<Make, MakeForUpdateDto>().ReverseMap();
+            
+            CreateMap<Model, ModelForCreationDto>().ReverseMap();
+            CreateMap<Model, ModelForDetailDto>().ReverseMap();
+            CreateMap<Model, ModelForListDto>().ReverseMap();
+            CreateMap<Model, ModelListForMakeDto>().ReverseMap();
+            CreateMap<Model, ModelForUpdateDto>().ReverseMap();
+
+
 
         }
     }
