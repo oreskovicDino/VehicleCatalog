@@ -9,6 +9,7 @@ using VehicleCatalog.Models.ModelDto;
 using VehicleCatalog.Models.ModelView;
 using VehicleCatalog.Service;
 using VehicleCatalog.Service.Models;
+using X.PagedList;
 
 namespace VehicleCatalog.Controllers
 {
@@ -22,9 +23,11 @@ namespace VehicleCatalog.Controllers
             this.service = service;
             this.mapper = mapper;
         }
-        public IActionResult Index(string search = null)
+        public IActionResult Index(int? page, string search = null, string sort = null)
         {
             ViewData["Title"] = "Models";
+
+            var pageNumber = page ?? 1;
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -35,10 +38,35 @@ namespace VehicleCatalog.Controllers
                 {
                     searchMakeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.GetAllMakes());
                 }
+
+                var searchModelPage = searchModelForlist;
+
+                switch (sort)
+                {
+
+                    case "NameDesc":
+                        searchModelPage = searchModelPage.OrderByDescending(o => o.Name);
+                        break;
+                    case "AbrvAsc":
+                        searchModelPage = searchModelPage.OrderBy(o => o.Abrv);
+                        break;
+                    case "AbrvDesc":
+                        searchModelPage = searchModelPage.OrderByDescending(o => o.Abrv);
+                        break;
+                    default:
+                        searchModelPage = searchModelPage.OrderBy(o => o.Name);
+                        break;
+                }
+
+                searchModelPage = searchModelPage.ToPagedList(pageNumber, 5);
+
                 var searchModel = new ModelIndexModel
                 {
-                    ModelList = searchModelForlist,
-                    MakeList = searchMakeForList
+                    ModelList = searchModelPage,
+                    MakeList = searchMakeForList,
+                    SortStatus = sort,
+                    SearchString = search,
+                    PageNum = pageNumber
                 };
 
                 return View(searchModel);
@@ -46,10 +74,35 @@ namespace VehicleCatalog.Controllers
 
             var modelForlist = mapper.Map<IEnumerable<ModelForListDto>>(service.GetAllModels());
             var makeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.GetAllMakes());
+
+            var modelPage = modelForlist;
+
+            switch (sort)
+            {
+
+                case "NameDesc":
+                    modelPage = modelPage.OrderByDescending(o => o.Name);
+                    break;
+                case "AbrvAsc":
+                    modelPage = modelPage.OrderBy(o => o.Abrv);
+                    break;
+                case "AbrvDesc":
+                    modelPage = modelPage.OrderByDescending(o => o.Abrv);
+                    break;
+                default:
+                    modelPage = modelPage.OrderBy(o => o.Name);
+                    break;
+            }
+
+            modelPage = modelPage.ToPagedList(pageNumber, 5);
+
             var model = new ModelIndexModel
             {
-                ModelList = modelForlist,
-                MakeList = makeForList
+                ModelList = modelPage,
+                MakeList = makeForList,
+                SortStatus = sort,
+                SearchString = search,
+                PageNum = pageNumber
             };
 
             return View(model);
@@ -97,9 +150,10 @@ namespace VehicleCatalog.Controllers
             {
                 ModelDetail = ModelForDetail,
                 MakeDetail = MakeForDetail,
-                Name = model.Name,
-                Id = model.Id,
-                MakeId = MakeForDetail.Id
+                Name = ModelForDetail.Name,
+                Id = ModelForDetail.Id,
+                MakeId = MakeForDetail.Id,
+                Abrv = ModelForDetail.Abrv
             };
 
             return View(detailModel);
@@ -112,8 +166,8 @@ namespace VehicleCatalog.Controllers
 
             Model modelForCreation = mapper.Map<Model>(model);
 
-            await service.CreateModel(modelForCreation);
-
+            service.Create(modelForCreation);
+            await service.SaveAll();
             return RedirectToAction("Detail", "Make", new { id = modelForCreation.MakeId });
         }
 
@@ -131,7 +185,8 @@ namespace VehicleCatalog.Controllers
 
             Model model = mapper.Map<Model>(modelForCreation);
 
-            await service.CreateModel(model);
+            service.Create(model);
+            await service.SaveAll();
 
             return RedirectToAction("Detail", "Make", new { id = make.Id });
         }
@@ -143,7 +198,7 @@ namespace VehicleCatalog.Controllers
 
             service.Update(modelForUpdate);
             await service.SaveAll();
-            
+
 
             return RedirectToAction("Detail", "Model", new { id = model.Id });
         }

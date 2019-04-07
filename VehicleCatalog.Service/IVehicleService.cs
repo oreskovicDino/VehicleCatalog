@@ -13,16 +13,15 @@ namespace VehicleCatalog.Service
         Model GetModelById(int id);
 
         IEnumerable<Make> GetAllMakes();
-        IEnumerable<Make> SearchMakes(string searchQuery);
         IEnumerable<Model> GetAllModels();
+
+        IEnumerable<Make> SearchMakes(string searchQuery);
         IEnumerable<Model> SearchModels(string searchQuery);
 
-
-        Task CreateMake(Make make);
-        Task CreateModel(Model model);
-
+        void Create<T>(T entity) where T : class;
         void Delete<T>(T entity) where T : class;
         void Update<T>(T entity) where T : class;
+
         void UpdateModelAbrv(int id, string abrv);
 
         Task<bool> SaveAll();

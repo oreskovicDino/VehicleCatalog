@@ -11,7 +11,9 @@ namespace VehicleCatalog.Models.MakeView
         public IEnumerable<MakeForListDto> MakeList { get; set; }
         public string Name { get; set; }
         public string Abrv { get; set; }
-        public string SearchQuery { get; set; }
+        public string SortStatus { get; set; }
+        public string SearchString { get; set; }
+        public int PageNum { get; set; }
 
     }
 }

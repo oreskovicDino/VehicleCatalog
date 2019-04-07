@@ -1,4 +1,7 @@
 ﻿@model VehicleCatalog.Models.MakeView.MakeIndexModel
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+
 
 <div class="row container" style="margin-top: 20px;">
 
@@ -10,20 +13,20 @@
             <hr class="my-4" style="background-color: darkblue; height: 1px;">
 
             <div class="container">
+                <form asp-controller="Make" asp-action="Index" method="post">
+                    <div class="row input-group">
+                        <input name="search" id="search" class="form-control" type="text" placeholder="Search">
+                        <div class="input-group-btn">
+                            <input type="submit" value="Search" class="btn btn-info" />
 
-            <form asp-controller="Make" asp-action="Index" method="post">
-                <div class="row input-group">
-                    <input name="search" id="search" class="form-control" type="text" placeholder="Search">
-                    <div class="input-group-btn">
-                        <input type="submit" value="Search" class="btn btn-info" />
-
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
             </div>
 
             <hr class="my-4" style="background-color: darkblue; height: 1px;">
             <div>
+                <h4 style="color:dodgerblue;">Create New Manufacturer</h4>
                 <form asp-action="AddMake" method="post" id="addMakeForm">
                     <div class="form-group">
                         <label asp-for="Name"></label>
@@ -33,11 +36,16 @@
                         <label asp-for="Abrv"></label>
                         <input asp-for="Abrv" class="form-control" />
                     </div>
-                    <button type="submit" id="submitModel2Btn" class="btn btn-info">Add New Manufacturer</button>
+                    <button type="submit" id="submitModel2Btn" class="btn btn-info">Create</button>
 
                 </form>
 
             </div>
+            <hr class="my-4" style="background-color: darkblue; height: 1px;">
+            @if (!(Model.SearchString == null))
+            {
+                <a asp-controller="Make" asp-action="Index" asp-route-page="" class="text-danger h4">Cancel Search & Filter <i class="far fa-window-close"></i></a>
+            }
 
         </div>
     </div>
@@ -48,45 +56,54 @@
             <h2 style="color:darkgreen;">List of automotive manufacturers </h2>
             <hr class="my-4" style="background-color: darkgreen; height: 1px;">
 
-            <button class="btn btn-block btn-sm btn-success" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                Show manufacturers
-            </button>
 
 
-            <div class="collapse" id="collapseExample">
-                <div class="card card-body">
-                    <hr class="my-4" style="background-color: darkgreen; height: 1px;">
-                    <table class="table table-hover" id="makeIndexTable">
 
-                        <thead class="h5">
-                            <tr>
-                                <th scope="col">Manufacturer Name</th>
-                                <th scope="col">Manufacturer Abrv.</th>
-                                <th scope="col">Edit / Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var make in Model.MakeList)
-                            {
-                                <tr>
-                                    <td>
-                                        <a asp-controller="Make" asp-action="Detail" asp-route-id="@make.Id" class="btn btn-block btn-success">
-                                            @make.Name
-                                        </a>
-                                    </td>
-                                    <td class="text-center">
-                                        @make.Abrv
-                                    </td>
-                                    <td class="text-center">
-                                        <a asp-action="Update" asp-route-id="@make.Id" class="btn btn-sm btn-warning">Edit</a>
-                                        <a asp-action="Delete" asp-route-id="@make.Id" onclick="return confirm('Are you sure to delete this record?')" class="btn btn-sm btn-danger">Delete</a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+
+            <table class="table table-hover" id="makeIndexTable">
+
+                <thead class="h5">
+                    <tr>
+                        <th scope="col">
+                            <a asp-controller="Make" asp-action="Index" asp-route-sort="NameDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-up"></i></a>
+                            Manufacturer Name
+                            <a asp-controller="Make" asp-action="Index" asp-route-sort="" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-down"></i></a>
+                        </th>
+                        <th scope="col">
+                            <a asp-controller="Make" asp-action="Index" asp-route-sort="AbrvDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-up"></i></a>
+                            Manufacturer Abrv.
+                            <a asp-controller="Make" asp-action="Index" asp-route-sort="AbrvAsc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-down"></i></a>
+                        </th>
+                        <th scope="col">Edit / Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var make in Model.MakeList)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Make" asp-action="Detail" asp-route-id="@make.Id" class="btn btn-block btn-success">
+                                    @make.Name
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                @make.Abrv
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Update" asp-route-id="@make.Id" class="btn btn-sm btn-warning">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@make.Id" onclick="return confirm('Are you sure to delete this record?')" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="container text-center">
+                @Html.PagedListPager((IPagedList)Model.MakeList.AsEnumerable(), page => Url.Action("Index", "Make", new { page = page, sort = Model.SortStatus }))
             </div>
+
+
+
             <hr class="my-4" style="background-color: darkgreen; height: 1px;">
 
         </div>

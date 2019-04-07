@@ -17,46 +17,12 @@ namespace VehicleCatalog.Service
             this.context = contex;
         }
 
-        public async Task CreateMake(Make make)
-        {
-            context.Add(make);
-            await context.SaveChangesAsync();
-        }
-
-        public async Task CreateModel(Model model)
-        {
-            context.Add(model);
-            await context.SaveChangesAsync();
-        }
-
-        public void Delete<T>(T entity) where T : class
-        {
-            context.Remove(entity);
-        }
-
-        public void Update<T>(T entity) where T : class
-        {
-            context.Update(entity);
-            
-        }
-
-        public IEnumerable<Make> GetAllMakes()
-        {
-            return context.Makes.Include(makes => makes.Models);
-        }
-
-        public IEnumerable<Model> GetAllModels()
-        {
-            return context.Models;
-        }
-
         public Make GetMakeById(int id)
         {
             var make = context.Makes.Where(m => m.Id == id).Include(m => m.Models).FirstOrDefault();
 
             return make;
         }
-
         public Model GetModelById(int id)
         {
             var model = context.Models.Where(m => m.Id == id).FirstOrDefault();
@@ -64,16 +30,19 @@ namespace VehicleCatalog.Service
             return model;
         }
 
-        public async Task<bool> SaveAll()
+        public IEnumerable<Make> GetAllMakes()
         {
-            return await context.SaveChangesAsync() > 0;
+            return context.Makes.Include(makes => makes.Models);
+        }
+        public IEnumerable<Model> GetAllModels()
+        {
+            return context.Models;
         }
 
         public IEnumerable<Make> SearchMakes(string searchQuery)
         {
             return context.Makes.Where(m => m.Name.Contains(searchQuery) || m.Abrv.Contains(searchQuery));
         }
-
         public IEnumerable<Model> SearchModels(string searchQuery)
         {
             return context.Models.Where(
@@ -83,6 +52,20 @@ namespace VehicleCatalog.Service
                 ||
                 model.Abrv.Contains(searchQuery)
                 );
+        }
+
+        public void Create<T>(T entity) where T : class
+        {
+            context.Add(entity);
+        }
+        public void Delete<T>(T entity) where T : class
+        {
+            context.Remove(entity);
+        }
+        public void Update<T>(T entity) where T : class
+        {
+            context.Update(entity);
+            
         }
 
         public void UpdateModelAbrv(int id, string abrv)
@@ -97,5 +80,11 @@ namespace VehicleCatalog.Service
 
             
         }
+
+        public async Task<bool> SaveAll()
+        {
+            return await context.SaveChangesAsync() > 0;
+        }
+
     }
 }

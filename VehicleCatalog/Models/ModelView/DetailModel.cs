@@ -12,7 +12,9 @@ namespace VehicleCatalog.Models.ModelView
         public ModelForDetailDto ModelDetail { get; set; }
         public MakeForDetailDto MakeDetail { get; set; }
         public string Name { get; set; }
+        public string Abrv { get; set; }
         public int Id { get; set; }
         public int MakeId { get; set; }
+
     }
 }

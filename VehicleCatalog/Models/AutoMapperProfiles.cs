@@ -22,8 +22,8 @@ namespace VehicleCatalog.Models
             CreateMap<Model, ModelForCreationDto>().ReverseMap();
             CreateMap<Model, ModelForDetailDto>().ReverseMap();
             CreateMap<Model, ModelForListDto>().ReverseMap();
-            CreateMap<Model, ModelListForMakeDto>().ReverseMap();
             CreateMap<Model, ModelForUpdateDto>().ReverseMap();
+            CreateMap<Model, ModelListForMakeDto>().ReverseMap();
 
 
 

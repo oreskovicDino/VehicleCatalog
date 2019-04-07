@@ -13,5 +13,8 @@ namespace VehicleCatalog.Models.ModelView
         public IEnumerable<MakeForListDto> MakeList { get; set; }
         public int MakeId { get; set; }
         public string Name { get; set; }
+        public string SortStatus { get; set; }
+        public string SearchString { get; set; }
+        public int PageNum { get; set; }
     }
 }

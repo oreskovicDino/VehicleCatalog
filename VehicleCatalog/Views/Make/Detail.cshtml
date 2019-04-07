@@ -1,4 +1,6 @@
 ﻿@model VehicleCatalog.Models.MakeView.MakeDetailModel
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
 
 <div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkgreen; margin-top: 20px;">
     <h2 style="color:darkgreen;">Detail View of Manufacturer</h2>
@@ -10,7 +12,7 @@
             <h4>Manufacturer abbreviation: <span class="text-success">( @Model.MakeDetail.Abrv )</span></h4>
             <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
             <a asp-controller="Model" asp-action="Create" asp-route-id="@Model.MakeDetail.Id" class="btn btn-block btn-success">Add New Model</a>
-            
+
 
             <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
 
@@ -41,6 +43,10 @@
                     }
                 </tbody>
             </table>
+
+            <div class="container text-center">
+                @Html.PagedListPager((IPagedList)Model.ModelList.AsEnumerable(), page => Url.Action("Detail", "Make", new { page = page }))
+            </div>
             <hr class="my-4" style="background-color: darkgreen; height: 1px;" />
         </div>
     </div>

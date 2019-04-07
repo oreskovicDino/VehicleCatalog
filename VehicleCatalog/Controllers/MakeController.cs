@@ -9,6 +9,7 @@ using VehicleCatalog.Models.MakeView;
 using VehicleCatalog.Models.ModelDto;
 using VehicleCatalog.Service;
 using VehicleCatalog.Service.Models;
+using X.PagedList;
 
 namespace VehicleCatalog.Controllers
 {
@@ -22,17 +23,43 @@ namespace VehicleCatalog.Controllers
             this.service = service;
             this.mapper = mapper;
         }
-        public IActionResult Index(string search = null)
+
+        public IActionResult Index(int? page, string search = null, string sort = null)
         {
             ViewData["Title"] = "Manufacturers";
+
+            var pageNumber = page ?? 1;
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchMakeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.SearchMakes(search));
 
+                var searchMakePage = searchMakeForList;
+
+                switch (sort)
+                {
+                    case "NameDesc":
+                        searchMakePage.OrderByDescending(o => o.Name);
+                        break;
+                    case "AbrvAsc":
+                        searchMakePage.OrderBy(o => o.Abrv);
+                        break;
+                    case "AbrvDesc":
+                        searchMakePage.OrderByDescending(o => o.Abrv);
+                        break;
+                    default:
+                        searchMakePage.OrderBy(o => o.Abrv);
+                        break;
+                }
+
+                searchMakePage = searchMakePage.ToPagedList(pageNumber, 5);
+
                 var searchMake = new MakeIndexModel
                 {
-                    MakeList = searchMakeForList,
+                    MakeList = searchMakePage,
+                    SortStatus = sort,
+                    SearchString = search,
+                    PageNum = pageNumber
                 };
 
                 return View(searchMake);
@@ -40,32 +67,60 @@ namespace VehicleCatalog.Controllers
 
             var makeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.GetAllMakes());
 
+            var makePage = makeForList;
+
+
+
+            switch (sort)
+            {
+
+                case "NameDesc":
+                    makePage = makePage.OrderByDescending(o => o.Name);
+                    break;
+                case "AbrvAsc":
+                    makePage = makePage.OrderBy(o => o.Abrv);
+                    break;
+                case "AbrvDesc":
+                    makePage = makePage.OrderByDescending(o => o.Abrv);
+                    break;
+                default:
+                    makePage = makePage.OrderBy(o => o.Name);
+                    break;
+            }
+
+            makePage = makePage.ToPagedList(pageNumber, 5);
+
             var make = new MakeIndexModel
             {
-                MakeList = makeForList,
+                MakeList = makePage,
+                SortStatus = sort,
+                SearchString = search,
+                PageNum = pageNumber
             };
 
             return View(make);
         }
 
-        public IActionResult Detail(int id)
+        public IActionResult Detail(int? page, int id)
         {
             ViewData["Title"] = "Manufacturer | Detail | ";
+
+            var pageNumber = page ?? 1;
 
             var make = service.GetMakeById(id);
 
             var modelListView = mapper.Map<IEnumerable<ModelListForMakeDto>>(make.Models);
 
+            var modelPage = modelListView.ToPagedList(pageNumber, 5);
+
             var makeDetail = new MakeDetailModel
             {
                 MakeDetail = mapper.Map<MakeForDetailDto>(make),
-                ModelList = modelListView
+                ModelList = modelPage
             };
 
             return View(makeDetail);
         }
-
-        
 
         public async Task<IActionResult> Delete(int id)
         {
@@ -97,7 +152,6 @@ namespace VehicleCatalog.Controllers
             return View(makeDetail);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> AddMake(MakeForCreationDto make)
         {
@@ -105,7 +159,8 @@ namespace VehicleCatalog.Controllers
 
             var makeForCreation = mapper.Map<Make>(make);
 
-            await service.CreateMake(makeForCreation);
+            service.Create(makeForCreation);
+            await service.SaveAll();
 
             return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
         }
@@ -113,8 +168,8 @@ namespace VehicleCatalog.Controllers
         [HttpPost]
         public async Task<IActionResult> Update(MakeForUpdateDto make)
         {
-            
-           
+
+
             service.Update(mapper.Map<Make>(make));
             service.UpdateModelAbrv(make.Id, make.Abrv);
             await service.SaveAll();

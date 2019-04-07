@@ -1,5 +1,6 @@
 ﻿@model VehicleCatalog.Models.ModelView.ModelIndexModel
-
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
 
 <div class="row container" style="margin-top: 20px;">
     <div class="col-lg-5">
@@ -10,33 +11,81 @@
 
                 <form asp-controller="Model" asp-action="Index" method="post">
                     <div class="row input-group">
-                        <input name="search" id="search" class="form-control" type="text" placeholder="Search">
+                        <input name="search" id="search" class="form-control" type="text" placeholder="Search Models & Manufacturers">
                         <div class="input-group-btn">
-                            <input type="submit" value="Search" class="btn btn-info" />
+                            <button type="submit" class="btn btn-info "><i class="fas fa-search"></i></button>
 
                         </div>
                     </div>
                 </form>
             </div>
+
             <hr class="my-4" style="background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%); height: 0.5px;">
-            <form asp-action="AddModel2" method="post" id="addModel2Form">
+
+            @* Create Model *@
+            <a data-toggle="collapse" href="#CreateCollapse" role="button" aria-expanded="false" aria-controls="CreateCollapse" style="color:darkgreen; margin:0;"><h4>Create New Model</h4></a>
+            <div class="collapse multi-collapse" id="CreateCollapse">
+                <div class="">
+
+                    <form asp-action="AddModel2" method="post" id="addModel2Form">
+                        <div class="form-group">
+                            <label asp-for="Name">Name of Model</label>
+                            <input asp-for="Name" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="MakeId">Manufacturer</label>
+                            <select asp-for="MakeId" class="form-control">
+                                @foreach (var make in Model.MakeList)
+                                {
+                                    <option value="@make.Id">@make.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" id="submitModelBtn" class="btn btn-success">Create</button>
+                    </form>
+                </div>
+            </div>
+            <hr style="background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%); height: 1px;">
+
+            @* Filter *@
+            <a class="text-info" data-toggle="collapse" href="#FilterCollapse" role="button" aria-expanded="false" aria-controls="FilterCollapse"><h4>Filter by Manufacturer</h4></a>
+            <div class="collapse multi-collapse" id="FilterCollapse">
+                <div class="container">
+
+                    <form asp-controller="Model" asp-action="Index" method="post">
+
+                        <label>Manufacturer</label>
+                        <div class="row input-group">
+
+                            <select name="search" id="search" class="form-control">
+                                @foreach (var make in Model.MakeList)
+                                {
+                                    <option value="@make.Name">@make.Name</option>
+                                }
+                            </select>
+                            <div class="input-group-btn">
+                                <button type="submit" class="btn btn-info ">Filter <i class="fas fa-filter"></i></button>
+                            </div>
+                        </div>
+
+                    </form>
 
 
-                <div class="form-group">
-                    <label asp-for="Name">Name of Model</label>
-                    <input asp-for="Name" class="form-control">
                 </div>
-                <div class="form-group">
-                    <label asp-for="MakeId">Manufacturer</label>
-                    <select asp-for="MakeId" class="form-control">
-                        @foreach (var make in Model.MakeList)
-                        {
-                            <option value="@make.Id">@make.Name</option>
-                        }
-                    </select>
-                </div>
-                <button type="submit" id="submitModelBtn" class="btn btn-success">Add New Model</button>
-            </form>
+            </div>
+            <hr style="height:1px; background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%);" />
+
+            <div class="">
+                @if (!(Model.SearchString == null))
+                {
+                    <a asp-controller="Model" asp-action="Index" asp-route-page="" class="text-danger h4">Cancel Search & Filter <i class="far fa-window-close"></i></a>
+                }
+            </div>
+
+
+
+
+
         </div>
     </div>
     <div class="col-lg-7">
@@ -46,40 +95,42 @@
                 List of automotive Models
             </h2>
             <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
-            <button class="btn btn-sm btn-block btn-danger" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                Show Models
-            </button>
 
-
-            <div class="collapse" id="collapseExample">
-                <div class="card card-body">
-                    <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
-                    <table class="table table-hover" id="makeIndexTable" style="height: 10px !important;">
-                        <thead class="h5">
-                            <tr>
-                                <th scope="col">Model Name</th>
-                                <th scope="col">Make Abrv.</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var m in Model.ModelList)
-                            {
-                                <tr>
-                                    <td>
-                                        <a asp-controller="Model" asp-action="Detail" asp-route-id="@m.Id" class="btn btn-danger btn-block">
-                                            @m.Name
-                                        </a>
-                                    </td>
-                                    <td class="text-center">
-                                        @m.Abrv
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-
-                </div>
+            <table class="table table-hover" id="makeIndexTable" style="height: 10px !important;">
+                <thead class="h5">
+                    <tr>
+                        <th scope="col">
+                            <a asp-controller="Model" asp-action="Index" asp-route-sort="NameDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-up"></i></a>
+                            Model Name
+                            <a asp-controller="Model" asp-action="Index" asp-route-sort="" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-down"></i></a>
+                        </th>
+                        <th scope="col">
+                            <a asp-controller="Model" asp-action="Index" asp-route-sort="AbrvDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-up"></i></a>
+                            Manufacturer Abrv.
+                            <a asp-controller="Model" asp-action="Index" asp-route-sort="AbrvAsc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-down"></i></a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Model.ModelList)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Model" asp-action="Detail" asp-route-id="@m.Id" class="btn btn-danger btn-block">
+                                    @m.Name
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                @m.Abrv
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="container text-center">
+                @Html.PagedListPager((IPagedList)Model.ModelList.AsEnumerable(), page => Url.Action("Index", "Model", new { page = page, sort = Model.SortStatus, search = Model.SearchString }))
             </div>
+
             <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
 
 
