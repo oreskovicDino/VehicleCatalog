@@ -4,6 +4,7 @@ using System.Text;
 
 namespace VehicleCatalog.Service.Models
 {
+    // EF model for Models table
     public class Model
     {
         public int Id { get; set; }

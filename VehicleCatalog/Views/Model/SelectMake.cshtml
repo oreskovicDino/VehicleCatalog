@@ -1,0 +1,68 @@
+﻿@model VehicleCatalog.Models.ModelView.ModelIndexModel
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+
+
+<div class="row container" style="margin-top: 20px;">
+
+    <div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkblue;">
+        <div class="container">
+            <form asp-controller="Model" asp-action="SelectMake" method="post">
+                <div class="row input-group">
+                    <input name="search" id="search" class="form-control" type="text" placeholder="Search">
+                    <div class="input-group-btn">
+                        <input type="submit" value="Search" class="btn btn-info" />
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkblue;">
+        <div class="container">
+            <table class="table table-hover" id="makeIndexTable">
+
+                <thead class="h5">
+                    <tr>
+                        <th scope="col" class="text-center">
+                            <a asp-controller="Model" asp-action="SelectMake" asp-route-sort="NameDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-up"></i></a>
+                            Manufacturer Name
+                            <a asp-controller="Model" asp-action="SelectMake" asp-route-sort="" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-down"></i></a>
+                        </th>
+                        <th scope="col" class="text-center">
+                            <a asp-controller="Model" asp-action="SelectMake" asp-route-sort="AbrvDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-up"></i></a>
+                            Manufacturer Abrv.
+                            <a asp-controller="Model" asp-action="SelectMake" asp-route-sort="AbrvAsc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-down"></i></a>
+                        </th>
+                        <th scope="col" class="text-center">Select manufacturer</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var make in Model.MakeList)
+                    {
+                        <tr>
+
+                            <td class="text-center">
+                                <h4>@make.Name</h4>
+                            </td>
+                            <td class="text-center">
+                                <h4>@make.Abrv</h4>
+                            </td>
+                            <td class="text-center">
+                                <a asp-controller="Model" asp-action="Create" asp-route-makeId="@make.Id" class="btn btn-sm btn-success"><i class="fas fa-angle-right"></i></a>
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+            <div class="container text-center">
+                @Html.PagedListPager(Model.MakeList, page => Url.Action("SelectMake", "Model", new { page = page, sort = Model.SortStatus, search = Model.SearchString }))
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using VehicleCatalog.Models.MakeDtos;
 using VehicleCatalog.Models.MakeView;
-using VehicleCatalog.Models.ModelDto;
 using VehicleCatalog.Service;
 using VehicleCatalog.Service.Models;
 using X.PagedList;
 
 namespace VehicleCatalog.Controllers
 {
+    // Make administration view (CRUD with Sorting, Filtering & Paging)
     public class MakeController : Controller
     {
         private readonly IVehicleService service;
@@ -24,158 +22,185 @@ namespace VehicleCatalog.Controllers
             this.mapper = mapper;
         }
 
-        public IActionResult Index(int? page, string search = null, string sort = null)
+
+        // (Index Page) Selects all records from the Makes table. 
+        // GET: /Make/Index
+        public async Task<IActionResult> Index(int? page, string search, string sort = null)
         {
             ViewData["Title"] = "Manufacturers";
 
-            var pageNumber = page ?? 1;
+            IPagination paging = new Pagination() { CurrentPage = page ?? 1 };
+            ISort sorting = new Sort() { Sorting = sort };
+            IFilter filter = new Filter() { FilterString = search };
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var searchMakeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.SearchMakes(search));
+            IPagedList<Make> makePage = await service.GetAllMakes(paging, sorting, filter);
 
-                var searchMakePage = searchMakeForList;
-
-                switch (sort)
-                {
-                    case "NameDesc":
-                        searchMakePage.OrderByDescending(o => o.Name);
-                        break;
-                    case "AbrvAsc":
-                        searchMakePage.OrderBy(o => o.Abrv);
-                        break;
-                    case "AbrvDesc":
-                        searchMakePage.OrderByDescending(o => o.Abrv);
-                        break;
-                    default:
-                        searchMakePage.OrderBy(o => o.Abrv);
-                        break;
-                }
-
-                searchMakePage = searchMakePage.ToPagedList(pageNumber, 5);
-
-                var searchMake = new MakeIndexModel
-                {
-                    MakeList = searchMakePage,
-                    SortStatus = sort,
-                    SearchString = search,
-                    PageNum = pageNumber
-                };
-
-                return View(searchMake);
-            }
-
-            var makeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.GetAllMakes());
-
-            var makePage = makeForList;
-
-
-
-            switch (sort)
-            {
-
-                case "NameDesc":
-                    makePage = makePage.OrderByDescending(o => o.Name);
-                    break;
-                case "AbrvAsc":
-                    makePage = makePage.OrderBy(o => o.Abrv);
-                    break;
-                case "AbrvDesc":
-                    makePage = makePage.OrderByDescending(o => o.Abrv);
-                    break;
-                default:
-                    makePage = makePage.OrderBy(o => o.Name);
-                    break;
-            }
-
-            makePage = makePage.ToPagedList(pageNumber, 5);
 
             var make = new MakeIndexModel
             {
                 MakeList = makePage,
                 SortStatus = sort,
                 SearchString = search,
-                PageNum = pageNumber
+                Pagination = paging
             };
 
             return View(make);
         }
 
-        public IActionResult Detail(int? page, int id)
+
+        // (Detail Page) Selects a single record from the Makes table. 
+        // GET: /Make/Detail/id
+        public async Task<IActionResult> Detail(int? page, int? id)
         {
             ViewData["Title"] = "Manufacturer | Detail | ";
 
-            var pageNumber = page ?? 1;
+            IPagination paging = new Pagination { CurrentPage = page };
 
-            var make = service.GetMakeById(id);
-
-            var modelListView = mapper.Map<IEnumerable<ModelListForMakeDto>>(make.Models);
-
-            var modelPage = modelListView.ToPagedList(pageNumber, 5);
-
-            var makeDetail = new MakeDetailModel
+            try
             {
-                MakeDetail = mapper.Map<MakeForDetailDto>(make),
-                ModelList = modelPage
-            };
+                if (id.HasValue)
+                {
+                    IMakeToReturn make = await service.GetMakeById(id, paging);
 
-            return View(makeDetail);
-        }
 
-        public async Task<IActionResult> Delete(int id)
-        {
-            var makeForDeletion = service.GetMakeById(id);
-            service.Delete(makeForDeletion);
-            if (await service.SaveAll())
+                    var makeDetail = new MakeDetailModel
+                    {
+                        MakeDetail = mapper.Map<MakeForDetailDto>(make.MakeByID),
+                        ModelList = make.ModelsByMake
+                    };
+
+                    return View(makeDetail);
+                }
+                else
+                {
+                    return BadRequest("The ID isn't valid");
+                }
+
+            }
+            catch (Exception e)
             {
-                return RedirectToAction(nameof(Index));
+
+                return BadRequest(e);
             }
 
-            return NoContent();
         }
 
-        public IActionResult Update(int id)
+
+        // (Create Page)
+        // GET: /Make/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // Adds a record to table Makes.
+        //
+        [HttpPost]
+        public async Task<IActionResult> Create(MakeForCreationDto make)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var makeForCreation = mapper.Map<Make>(make);
+                    await service.Create(makeForCreation);
+                    return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
+                }
+
+                return View();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
+
+        // (Update Page) selects a single record from the Makes table.
+        // GET: /Make/Update/id
+        public async Task<IActionResult> Update(int? id)
         {
             ViewData["Title"] = "Manufacturer | Edit ";
 
-            var make = service.GetMakeById(id);
-            var modelListView = mapper.Map<IEnumerable<ModelListForMakeDto>>(make.Models);
-
-            var makeDetail = new MakeUpdateModel
+            try
             {
-                Id = make.Id,
-                Name = make.Name,
-                Abrv = make.Abrv,
-                ModelList = modelListView
-            };
+                if (id.HasValue)
+                {
+                    var make = await service.GetMakeById(id);
 
-            return View(makeDetail);
+                    var makeDetail = new MakeUpdateModel
+                    {
+                        Id = make.MakeByID.Id,
+                        Name = make.MakeByID.Name,
+                        Abrv = make.MakeByID.Abrv
+                    };
+
+                    return View(makeDetail);
+
+                }
+                else
+                {
+                    return BadRequest("The ID isn't valid");
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddMake(MakeForCreationDto make)
-        {
-
-
-            var makeForCreation = mapper.Map<Make>(make);
-
-            service.Create(makeForCreation);
-            await service.SaveAll();
-
-            return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
-        }
-
+        // Updates a record from table Makes.
+        //
         [HttpPost]
         public async Task<IActionResult> Update(MakeForUpdateDto make)
         {
+            try
+            {
+                if (await service.UpdateMake(mapper.Map<Make>(make)))
+                    return RedirectToAction("Detail", "Make", new { id = make.Id });
 
+                return BadRequest("Something went wrong");
 
-            service.Update(mapper.Map<Make>(make));
-            service.UpdateModelAbrv(make.Id, make.Abrv);
-            await service.SaveAll();
-
-            return RedirectToAction("Detail", "Make", new { id = make.Id });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
         }
 
+
+        // Removes a record from table Makes.
+        //
+        public async Task<IActionResult> Delete(int? id)
+        {
+            try
+            {
+                if (id.HasValue)
+                {
+
+                    if (await service.DeleteMake((int)id))
+                    {
+                        return RedirectToAction("Index", "Make");
+                    }
+                    else
+                    {
+                        return BadRequest("Something went wrong, we couldn't delete this manufacturer");
+                    }
+
+                }
+                else
+                {
+                    return BadRequest("The ID isn't valid");
+                }
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e);
+            }
+
+
+
+        }
     }
 }

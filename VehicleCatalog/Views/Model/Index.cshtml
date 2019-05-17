@@ -5,109 +5,64 @@
 <div class="row container" style="margin-top: 20px;">
     <div class="col-lg-5">
         <div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkblue;">
+
             <h2 class="text-info">Model administration</h2>
+
             <hr class="my-4" style="background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%); height: 1px;">
+
             <div class="container">
 
                 <form asp-controller="Model" asp-action="Index" method="post">
                     <div class="row input-group">
-                        <input name="search" id="search" class="form-control" type="text" placeholder="Search Models & Manufacturers">
+                        <input name="search" id="search" class="form-control" type="text" placeholder="Search by Model or Manufacturer">
                         <div class="input-group-btn">
                             <button type="submit" class="btn btn-info "><i class="fas fa-search"></i></button>
-
                         </div>
                     </div>
                 </form>
             </div>
 
+            <hr class="my-4" style="background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%); height: 1px;">
+
+            <a asp-controller="Model" asp-action="SelectMake" class="btn btn-block btn-success">Create a new model</a>
+
             <hr class="my-4" style="background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%); height: 0.5px;">
-
-            @* Create Model *@
-            <a data-toggle="collapse" href="#CreateCollapse" role="button" aria-expanded="false" aria-controls="CreateCollapse" style="color:darkgreen; margin:0;"><h4>Create New Model</h4></a>
-            <div class="collapse multi-collapse" id="CreateCollapse">
-                <div class="">
-
-                    <form asp-action="AddModel2" method="post" id="addModel2Form">
-                        <div class="form-group">
-                            <label asp-for="Name">Name of Model</label>
-                            <input asp-for="Name" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label asp-for="MakeId">Manufacturer</label>
-                            <select asp-for="MakeId" class="form-control">
-                                @foreach (var make in Model.MakeList)
-                                {
-                                    <option value="@make.Id">@make.Name</option>
-                                }
-                            </select>
-                        </div>
-                        <button type="submit" id="submitModelBtn" class="btn btn-success">Create</button>
-                    </form>
-                </div>
-            </div>
-            <hr style="background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%); height: 1px;">
-
-            @* Filter *@
-            <a class="text-info" data-toggle="collapse" href="#FilterCollapse" role="button" aria-expanded="false" aria-controls="FilterCollapse"><h4>Filter by Manufacturer</h4></a>
-            <div class="collapse multi-collapse" id="FilterCollapse">
-                <div class="container">
-
-                    <form asp-controller="Model" asp-action="Index" method="post">
-
-                        <label>Manufacturer</label>
-                        <div class="row input-group">
-
-                            <select name="search" id="search" class="form-control">
-                                @foreach (var make in Model.MakeList)
-                                {
-                                    <option value="@make.Name">@make.Name</option>
-                                }
-                            </select>
-                            <div class="input-group-btn">
-                                <button type="submit" class="btn btn-info ">Filter <i class="fas fa-filter"></i></button>
-                            </div>
-                        </div>
-
-                    </form>
-
-
-                </div>
-            </div>
-            <hr style="height:1px; background: linear-gradient(135deg, rgba(2,23,117,1) 0%,rgba(3,71,160,1) 44%,rgba(0,6,91,1) 100%);" />
 
             <div class="">
                 @if (!(Model.SearchString == null))
                 {
-                    <a asp-controller="Model" asp-action="Index" asp-route-page="" class="text-danger h4">Cancel Search & Filter <i class="far fa-window-close"></i></a>
+                    <a asp-controller="Model" asp-action="Index" asp-route-page="" class="text-danger h4"><i class="far fa-window-close"></i> @Model.SearchString</a>
                 }
             </div>
 
-
-
-
-
         </div>
     </div>
+
     <div class="col-lg-7">
 
         <div class="jumbotron  img-rounded" style="border:solid 1px; border-color: darkred;">
+
             <h2 class="text-danger ">
                 List of automotive Models
             </h2>
+
             <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
 
             <table class="table table-hover" id="makeIndexTable" style="height: 10px !important;">
                 <thead class="h5">
                     <tr>
                         <th scope="col">
-                            <a asp-controller="Model" asp-action="Index" asp-route-sort="NameDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-up"></i></a>
+                            <a asp-controller="Model" asp-action="Index" asp-route-sort="NameDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-up"></i></a>
                             Model Name
-                            <a asp-controller="Model" asp-action="Index" asp-route-sort="" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-down"></i></a>
+                            <a asp-controller="Model" asp-action="Index" asp-route-sort="" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-down"></i></a>
                         </th>
                         <th scope="col">
-                            <a asp-controller="Model" asp-action="Index" asp-route-sort="AbrvDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-up"></i></a>
+                            <a asp-controller="Model" asp-action="Index" asp-route-sort="AbrvDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-up"></i></a>
                             Manufacturer Abrv.
-                            <a asp-controller="Model" asp-action="Index" asp-route-sort="AbrvAsc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-down"></i></a>
+                            <a asp-controller="Model" asp-action="Index" asp-route-sort="AbrvAsc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-down"></i></a>
+                        </th>
+                        <th scope="col">
+                            Delete Models
                         </th>
                     </tr>
                 </thead>
@@ -116,24 +71,26 @@
                     {
                         <tr>
                             <td>
-                                <a asp-controller="Model" asp-action="Detail" asp-route-id="@m.Id" class="btn btn-danger btn-block">
+                                <a asp-controller="Model" asp-action="Detail" asp-route-id="@m.Id" class="btn btn-primary btn-block">
                                     @m.Name
                                 </a>
                             </td>
                             <td class="text-center">
                                 @m.Abrv
                             </td>
+                            <td class="text-center">
+                                <a asp-controller="Model" asp-action="Delete" asp-route-id="@m.Id" onclick="return confirm('Are you sure to delete this record?')" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
+
             <div class="container text-center">
-                @Html.PagedListPager((IPagedList)Model.ModelList.AsEnumerable(), page => Url.Action("Index", "Model", new { page = page, sort = Model.SortStatus, search = Model.SearchString }))
+                @Html.PagedListPager(Model.ModelList, page => Url.Action("Index", "Model", new { page = page, sort = Model.SortStatus, search = Model.SearchString }))
             </div>
 
             <hr class="my-4" style="background: linear-gradient(135deg, rgba(169,3,41,1) 0%,rgba(143,2,34,1) 44%,rgba(109,0,25,1) 100%); height: 1px;">
-
-
 
         </div>
     </div>

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ using X.PagedList;
 
 namespace VehicleCatalog.Controllers
 {
+    //Model administration view (CRUD with Sorting, Filtering & Paging)
     public class ModelController : Controller
     {
         private readonly IVehicleService service;
@@ -23,184 +25,187 @@ namespace VehicleCatalog.Controllers
             this.service = service;
             this.mapper = mapper;
         }
-        public IActionResult Index(int? page, string search = null, string sort = null)
+
+        // (Index Page) Selects all records from the Models table.
+        // GET: /Model/Index
+        public async Task<IActionResult> Index(int? page, string search, string sort)
         {
             ViewData["Title"] = "Models";
 
-            var pageNumber = page ?? 1;
+            IPagination paging = new Pagination() { CurrentPage = page };
+            ISort sorting = new Sort() { Sorting = sort };
+            IFilter filter = new Filter() { FilterString = search };
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var searchModelForlist = mapper.Map<IEnumerable<ModelForListDto>>(service.SearchModels(search));
-                var searchMakeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.SearchMakes(search));
-
-                if (!searchMakeForList.Any())
-                {
-                    searchMakeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.GetAllMakes());
-                }
-
-                var searchModelPage = searchModelForlist;
-
-                switch (sort)
-                {
-
-                    case "NameDesc":
-                        searchModelPage = searchModelPage.OrderByDescending(o => o.Name);
-                        break;
-                    case "AbrvAsc":
-                        searchModelPage = searchModelPage.OrderBy(o => o.Abrv);
-                        break;
-                    case "AbrvDesc":
-                        searchModelPage = searchModelPage.OrderByDescending(o => o.Abrv);
-                        break;
-                    default:
-                        searchModelPage = searchModelPage.OrderBy(o => o.Name);
-                        break;
-                }
-
-                searchModelPage = searchModelPage.ToPagedList(pageNumber, 5);
-
-                var searchModel = new ModelIndexModel
-                {
-                    ModelList = searchModelPage,
-                    MakeList = searchMakeForList,
-                    SortStatus = sort,
-                    SearchString = search,
-                    PageNum = pageNumber
-                };
-
-                return View(searchModel);
-            }
-
-            var modelForlist = mapper.Map<IEnumerable<ModelForListDto>>(service.GetAllModels());
-            var makeForList = mapper.Map<IEnumerable<MakeForListDto>>(service.GetAllMakes());
-
-            var modelPage = modelForlist;
-
-            switch (sort)
-            {
-
-                case "NameDesc":
-                    modelPage = modelPage.OrderByDescending(o => o.Name);
-                    break;
-                case "AbrvAsc":
-                    modelPage = modelPage.OrderBy(o => o.Abrv);
-                    break;
-                case "AbrvDesc":
-                    modelPage = modelPage.OrderByDescending(o => o.Abrv);
-                    break;
-                default:
-                    modelPage = modelPage.OrderBy(o => o.Name);
-                    break;
-            }
-
-            modelPage = modelPage.ToPagedList(pageNumber, 5);
+            IPagedList<Model> modelPage = await service.GetAllModels(paging, sorting, filter);
 
             var model = new ModelIndexModel
             {
                 ModelList = modelPage,
-                MakeList = makeForList,
                 SortStatus = sort,
                 SearchString = search,
-                PageNum = pageNumber
+                Pagination = paging
             };
 
             return View(model);
         }
 
-        public IActionResult Create(int id)
+
+        // (Detail Page) Selects a single record from the Models table. 
+        // GET: /Model/Detail/id
+        public async Task<IActionResult> Detail(int? id)
+        {
+            ViewData["Title"] = "Models | Detail | ";
+
+            try
+            {
+                if (id.HasValue)
+                {
+                    IModelToReturn model = await service.GetModelById(id);
+                    var modelDetail = model.ModelByID;
+
+                    DetailModel detailModel = new DetailModel
+                    {
+                        ModelDetail = mapper.Map<ModelForDetailDto>(model.ModelByID),
+                        MakeDetail = mapper.Map<MakeForDetailDto>(model.MakeByID),
+                        Id = modelDetail.Id,
+                        Abrv = modelDetail.Abrv,
+                        MakeId = modelDetail.MakeId
+                    };
+                    return View(detailModel);
+                }
+                else
+                {
+                    return BadRequest("The ID isn't valid");
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong");
+            }
+        }
+
+
+        // (SelectMake Page) Selects all records record from the Makes table. 
+        // GET: /Model/SelectMake/id
+        public async Task<IActionResult> SelectMake(int? page, string search, string sort)
+        {
+            IPagination paging = new Pagination() { CurrentPage = page };
+            ISort sorting = new Sort() { Sorting = sort };
+            IFilter filter = new Filter() { FilterString = search };
+
+            IPagedList<Make> makePage = await service.GetAllMakes(paging, sorting, filter);
+            var make = new ModelIndexModel
+            {
+                MakeList = makePage,
+                Pagination = paging,
+                SearchString = search,
+                SortStatus = sort
+            };
+            return View(make);
+        }
+
+
+        // (Create Page) selects a single record from the Makes table. 
+        // GET: /Model/Create?makeId
+        public async Task<IActionResult> Create(int? makeId)
         {
             ViewData["Title"] = "Models | Create | ";
-            var make = service.GetMakeById(id);
-            var makeForModel = mapper.Map<MakeForModelDto>(make);
+
+            IMakeToReturn make = await service.GetMakeById(makeId);
+            var makeForModel = mapper.Map<MakeForModelDto>(make.MakeByID);
 
             var createModel = new CreateModel
             {
-                Make = makeForModel,
                 Abrv = makeForModel.Abrv,
-                MakeId = makeForModel.Id
-
+                MakeId = makeForModel.Id,
+                DetailMakeName = makeForModel.Name
             };
 
             return View(createModel);
         }
 
+        // Adds a record to table Models.
+        //
 
-
-        public async Task<IActionResult> Delete(int id)
+        [HttpPost]
+        public async Task<IActionResult> Create(ModelForCreationDto model)
         {
-            var modelForDeletion = service.GetModelById(id);
-            service.Delete(modelForDeletion);
-            if (await service.SaveAll())
+            try
             {
-                return RedirectToAction(nameof(Index));
+                var modelForCreation = mapper.Map<Model>(model);
+                if (ModelState.IsValid)
+                {
+
+                    await service.Create(modelForCreation);
+                    return RedirectToAction("Detail", "Model", new { id = modelForCreation.Id });
+                }
+                else
+                {
+                    var createModel = new CreateModel
+                    {
+                        Abrv = model.Abrv,
+                        MakeId = model.MakeId,
+                        DetailMakeName = model.DetailMakeName
+                    };
+                    return View(createModel);
+                }
+            }
+            catch (Exception)
+            {
+
+                return BadRequest();
             }
 
-            return NoContent();
         }
 
-        public IActionResult Detail(int id)
-        {
-            ViewData["Title"] = "Models | Detail | ";
-            Model model = service.GetModelById(id);
-            ModelForDetailDto ModelForDetail = mapper.Map<ModelForDetailDto>(model);
-            MakeForDetailDto MakeForDetail = mapper.Map<MakeForDetailDto>(service.GetMakeById(model.MakeId));
 
-            var detailModel = new DetailModel
-            {
-                ModelDetail = ModelForDetail,
-                MakeDetail = MakeForDetail,
-                Name = ModelForDetail.Name,
-                Id = ModelForDetail.Id,
-                MakeId = MakeForDetail.Id,
-                Abrv = ModelForDetail.Abrv
-            };
-
-            return View(detailModel);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddModel(ModelForCreationDto model)
-        {
-
-
-            Model modelForCreation = mapper.Map<Model>(model);
-
-            service.Create(modelForCreation);
-            await service.SaveAll();
-            return RedirectToAction("Detail", "Make", new { id = modelForCreation.MakeId });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddModel2(int MakeId, string Name)
-        {
-            var make = service.GetMakeById(MakeId);
-
-            var modelForCreation = new ModelForCreationDto
-            {
-                Name = Name,
-                Abrv = make.Abrv,
-                MakeId = make.Id
-            };
-
-            Model model = mapper.Map<Model>(modelForCreation);
-
-            service.Create(model);
-            await service.SaveAll();
-
-            return RedirectToAction("Detail", "Make", new { id = make.Id });
-        }
-
+        // Updates a record from table Models.
+        //
         [HttpPost]
         public async Task<IActionResult> Update(ModelForUpdateDto model)
         {
-            var modelForUpdate = mapper.Map<Model>(model);
+            try
+            {
+                if (await service.UpdateModel(mapper.Map<Model>(model)))
+                {
+                    return RedirectToAction("Detail", "Model", new { id = model.Id });
+                }
+                return BadRequest("Something went wrong");
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
 
-            service.Update(modelForUpdate);
-            await service.SaveAll();
 
+        // Removes a record from table Models.
+        //
+        public async Task<IActionResult> Delete(int? id)
+        {
+            try
+            {
+                if (id.HasValue)
+                {
+                    if (await service.DeleteModel((int)id))
+                    {
+                        return RedirectToAction("Index", "Model");
+                    }
+                    else
+                    {
+                        return BadRequest("Something went wrong, we couldn't delete this model");
+                    }
+                }
+                else
+                {
+                    return BadRequest("The ID isn't valid");
+                }
+            }
+            catch (Exception e)
+            {
 
-            return RedirectToAction("Detail", "Model", new { id = model.Id });
+                return BadRequest(e);
+            }
         }
 
 

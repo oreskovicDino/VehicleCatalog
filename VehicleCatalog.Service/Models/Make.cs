@@ -2,6 +2,7 @@
 
 namespace VehicleCatalog.Service.Models
 {
+    // EF model for Makes table
     public class Make
     {
         public int Id { get; set; }

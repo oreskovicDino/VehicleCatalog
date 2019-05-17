@@ -18,61 +18,39 @@
                         <input name="search" id="search" class="form-control" type="text" placeholder="Search">
                         <div class="input-group-btn">
                             <input type="submit" value="Search" class="btn btn-info" />
-
                         </div>
                     </div>
                 </form>
             </div>
-
-            <hr class="my-4" style="background-color: darkblue; height: 1px;">
-            <div>
-                <h4 style="color:dodgerblue;">Create New Manufacturer</h4>
-                <form asp-action="AddMake" method="post" id="addMakeForm">
-                    <div class="form-group">
-                        <label asp-for="Name"></label>
-                        <input asp-for="Name" class="form-control" />
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="Abrv"></label>
-                        <input asp-for="Abrv" class="form-control" />
-                    </div>
-                    <button type="submit" id="submitModel2Btn" class="btn btn-info">Create</button>
-
-                </form>
-
-            </div>
-            <hr class="my-4" style="background-color: darkblue; height: 1px;">
             @if (!(Model.SearchString == null))
             {
-                <a asp-controller="Make" asp-action="Index" asp-route-page="" class="text-danger h4">Cancel Search & Filter <i class="far fa-window-close"></i></a>
+                <hr class="my-4" style="background-color: darkblue; height: 1px;">
+                <a asp-controller="Make" asp-action="Index" asp-route-page="" class="text-danger h4" style="margin-top: 2rem;"><i class="far fa-window-close"></i> @Model.SearchString</a>
             }
 
+            <hr class="my-4" style="background-color: darkblue; height: 1px;">
+            <a class="btn btn-block btn-success" asp-controller="Make" asp-action="Create">Create a new manufacturer</a>
+            <hr class="my-4" style="background-color: darkblue; height: 1px;">
         </div>
     </div>
-
 
     <div class="col-lg-7">
         <div class="jumbotron  img-rounded" style="border:solid 1px; border-color: darkgreen;">
             <h2 style="color:darkgreen;">List of automotive manufacturers </h2>
             <hr class="my-4" style="background-color: darkgreen; height: 1px;">
-
-
-
-
-
             <table class="table table-hover" id="makeIndexTable">
 
                 <thead class="h5">
                     <tr>
                         <th scope="col">
-                            <a asp-controller="Make" asp-action="Index" asp-route-sort="NameDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-up"></i></a>
+                            <a asp-controller="Make" asp-action="Index" asp-route-sort="NameDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-up"></i></a>
                             Manufacturer Name
-                            <a asp-controller="Make" asp-action="Index" asp-route-sort="" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-down"></i></a>
+                            <a asp-controller="Make" asp-action="Index" asp-route-sort="" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-down"></i></a>
                         </th>
                         <th scope="col">
-                            <a asp-controller="Make" asp-action="Index" asp-route-sort="AbrvDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-up"></i></a>
+                            <a asp-controller="Make" asp-action="Index" asp-route-sort="AbrvDesc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-up"></i></a>
                             Manufacturer Abrv.
-                            <a asp-controller="Make" asp-action="Index" asp-route-sort="AbrvAsc" asp-route-search="@Model.SearchString" asp-route-page="@Model.PageNum"><i class="fas fa-sort-alpha-down"></i></a>
+                            <a asp-controller="Make" asp-action="Index" asp-route-sort="AbrvAsc" asp-route-search="@Model.SearchString" asp-route-page="@Model.Pagination.CurrentPage"><i class="fas fa-sort-alpha-down"></i></a>
                         </th>
                         <th scope="col">Edit / Delete</th>
                     </tr>
@@ -99,10 +77,8 @@
             </table>
 
             <div class="container text-center">
-                @Html.PagedListPager((IPagedList)Model.MakeList.AsEnumerable(), page => Url.Action("Index", "Make", new { page = page, sort = Model.SortStatus }))
+                @Html.PagedListPager(Model.MakeList, page => Url.Action("Index", "Make", new { page = page, sort = Model.SortStatus, search = Model.SearchString }))
             </div>
-
-
 
             <hr class="my-4" style="background-color: darkgreen; height: 1px;">
 

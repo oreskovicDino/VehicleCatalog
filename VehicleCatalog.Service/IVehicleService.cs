@@ -1,29 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using VehicleCatalog.Service.Models;
-
+using X.PagedList;
 
 namespace VehicleCatalog.Service
 {
+    //VehicleService interface - CRUD for Make and Model (Sorting, Filtering & Paging)
     public interface IVehicleService
     {
-        Make GetMakeById(int id);
-        Model GetModelById(int id);
+        // Selects all records from the Makes table. With paging, sorting, filtering 
+        Task<IPagedList<Make>> GetAllMakes(IPagination pagination, ISort sorting, IFilter filter);
 
-        IEnumerable<Make> GetAllMakes();
-        IEnumerable<Model> GetAllModels();
+        // Selects all records from the Models table. With paging, sorting, filtering
+        Task<IPagedList<Model>> GetAllModels(IPagination pagination, ISort sorting, IFilter filter);
 
-        IEnumerable<Make> SearchMakes(string searchQuery);
-        IEnumerable<Model> SearchModels(string searchQuery);
+        // Selects a single record from the Makes table.
+        Task<IMakeToReturn> GetMakeById(int? id);
 
-        void Create<T>(T entity) where T : class;
-        void Delete<T>(T entity) where T : class;
-        void Update<T>(T entity) where T : class;
+        // Selects a single record from the Makes table, with paging
+        Task<IMakeToReturn> GetMakeById(int? id, IPagination pagin);
 
-        void UpdateModelAbrv(int id, string abrv);
+        // Selects a single record from the Models table.
+        Task<IModelToReturn> GetModelById(int? id);
 
-        Task<bool> SaveAll();
+        // Adds a record to table Makes or Models.
+        Task<bool> Create<T>(T entity) where T : class;
+
+        // Updates a record from table Makes.
+        Task<bool> UpdateMake(Make make);
+
+        // Updates a record from table Models.
+        Task<bool> UpdateModel(Model model);
+
+        // Removes a record from table Makes.
+        Task<bool> DeleteMake(int id);
+
+        // Removes a record from table Models.
+        Task<bool> DeleteModel(int id);
     }
 }

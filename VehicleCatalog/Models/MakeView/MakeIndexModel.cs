@@ -1,19 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using VehicleCatalog.Models.MakeDtos;
+﻿using System.ComponentModel.DataAnnotations;
+using VehicleCatalog.Service.Models;
+using X.PagedList;
 
 namespace VehicleCatalog.Models.MakeView
 {
     public class MakeIndexModel
     {        
-        public IEnumerable<MakeForListDto> MakeList { get; set; }
+        public IPagedList<Make> MakeList { get; set; }
+        
         public string Name { get; set; }
+        
         public string Abrv { get; set; }
         public string SortStatus { get; set; }
         public string SearchString { get; set; }
-        public int PageNum { get; set; }
+        public IPagination Pagination { get; set; }
 
     }
 }

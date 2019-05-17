@@ -1,27 +1,21 @@
 ﻿@model VehicleCatalog.Models.MakeView.MakeUpdateModel
 
 <div class="jumbotron img-rounded" style="border:solid 1px; border-color: darkblue; margin-top: 20px;">
-    <h2 style="color: darkblue;">Create Model</h2>
-    <hr class="my-2" style="height: .5px; background-color: darkblue;" />
-    
-        
-            <hr class="my-2" style="height: 1px; background-color: darkblue;" />
-            <form asp-action="Update" method="post" id="updateMakeForm">
-                <div class="form-group">
-                    <label asp-for="@Model.Name"></label>
-                    <input asp-for="@Model.Name" class="form-control" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="@Model.Abrv"></label>
-                    <input asp-for="@Model.Abrv" class="form-control" />
-                    <input asp-for="@Model.Id" type="hidden" />
-                    
-                </div>
+    <h2 style="color: darkblue;">Update manufacturer</h2>
+    <hr class="my-2" style="height: 1px; background-color: darkblue;" />
+    <form asp-action="Update" method="post" id="updateMakeForm">
+        <div class="form-group">
+            <label asp-for="@Model.Name"></label>
+            <input asp-for="@Model.Name" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model.Abrv"></label>
+            <input asp-for="@Model.Abrv" class="form-control" />
+            <input asp-for="@Model.Id" type="hidden" />
 
-                <button type="submit" id="submitMakeBtn" class="btn btn-info" onclick="return confirm('Are you Sure')">Update</button>
-            </form>
-            <hr class="my-2" style="height: 1px; background-color: darkblue;" />
-        
-    
+        </div>
 
+        <button type="submit" id="submitMakeBtn" class="btn btn-info" onclick="return confirm('Are you Sure')">Update</button>
+    </form>
+    <hr class="my-2" style="height: 1px; background-color: darkblue;" />
 </div>
