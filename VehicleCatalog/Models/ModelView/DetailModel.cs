@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using VehicleCatalog.Models.MakeDtos;
-using VehicleCatalog.Models.ModelDto;
+﻿using VehicleCatalog.Service.Models;
 
 namespace VehicleCatalog.Models.ModelView
 {
     public class DetailModel
     {
-        public ModelForDetailDto ModelDetail { get; set; }
-        public MakeForDetailDto MakeDetail { get; set; }
+        public VehicleModelVM ModelDetail { get; set; }
+        public Make MakeDetail { get; set; }
         public string Name { get; set; }
         public string Abrv { get; set; }
         public int Id { get; set; }

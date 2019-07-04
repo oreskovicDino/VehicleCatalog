@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using VehicleCatalog.Models.MakeDtos;
+using VehicleCatalog.Models;
 using VehicleCatalog.Models.MakeView;
 using VehicleCatalog.Service;
 using VehicleCatalog.Service.Models;
@@ -13,12 +13,13 @@ namespace VehicleCatalog.Controllers
     // Make administration view (CRUD with Sorting, Filtering & Paging)
     public class MakeController : Controller
     {
-        private readonly IVehicleService service;
+        private readonly IUnitOfWork unit;
         private readonly IMapper mapper;
 
-        public MakeController(IVehicleService service, IMapper mapper)
+        public MakeController(IUnitOfWork unit, IMapper mapper)
         {
-            this.service = service;
+            //this.service = service;
+            this.unit = unit;
             this.mapper = mapper;
         }
 
@@ -33,8 +34,7 @@ namespace VehicleCatalog.Controllers
             ISort sorting = new Sort() { Sorting = sort };
             IFilter filter = new Filter() { FilterString = search };
 
-            IPagedList<Make> makePage = await service.GetAllMakes(paging, sorting, filter);
-
+            IPagedList<Make> makePage = await unit.Makes.GetAll(paging, sorting, filter);
 
             var make = new MakeIndexModel
             {
@@ -44,6 +44,7 @@ namespace VehicleCatalog.Controllers
                 Pagination = paging
             };
 
+            Dis();
             return View(make);
         }
 
@@ -60,15 +61,17 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
-                    IMakeToReturn make = await service.GetMakeById(id, paging);
+                    //Make make = await service.GetById(id);
+                    Make make = await unit.Makes.GetById(id);
+                    IPagedList<Model> models = await unit.Models.GetModelsByMake(make, paging);
 
 
                     var makeDetail = new MakeDetailModel
                     {
-                        MakeDetail = mapper.Map<MakeForDetailDto>(make.MakeByID),
-                        ModelList = make.ModelsByMake
+                        MakeDetail = mapper.Map<VehicleMakeVM>(make),
+                        ModelList = models
                     };
-
+                    Dispose();
                     return View(makeDetail);
                 }
                 else
@@ -96,14 +99,15 @@ namespace VehicleCatalog.Controllers
         // Adds a record to table Makes.
         //
         [HttpPost]
-        public async Task<IActionResult> Create(MakeForCreationDto make)
+        public async Task<IActionResult> Create(VehicleMakeVM make)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
                     var makeForCreation = mapper.Map<Make>(make);
-                    await service.Create(makeForCreation);
+                    await unit.Makes.Add(makeForCreation);
+                    Dispose();
                     return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
                 }
 
@@ -126,15 +130,15 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
-                    var make = await service.GetMakeById(id);
-
+                    var make = await unit.Makes.GetById(id);
                     var makeDetail = new MakeUpdateModel
                     {
-                        Id = make.MakeByID.Id,
-                        Name = make.MakeByID.Name,
-                        Abrv = make.MakeByID.Abrv
+                        Id = make.Id,
+                        Name = make.Name,
+                        Abrv = make.Abrv
                     };
 
+                    Dis();
                     return View(makeDetail);
 
                 }
@@ -152,12 +156,15 @@ namespace VehicleCatalog.Controllers
         // Updates a record from table Makes.
         //
         [HttpPost]
-        public async Task<IActionResult> Update(MakeForUpdateDto make)
+        public async Task<IActionResult> Update(VehicleMakeVM make)
         {
             try
             {
-                if (await service.UpdateMake(mapper.Map<Make>(make)))
+                if (await unit.Makes.Update(mapper.Map<Make>(make)))
+                {
+                    Dis();
                     return RedirectToAction("Detail", "Make", new { id = make.Id });
+                }
 
                 return BadRequest("Something went wrong");
 
@@ -177,9 +184,11 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
+                    Make make = await unit.Makes.GetById(id);
 
-                    if (await service.DeleteMake((int)id))
+                    if (await unit.Makes.Remove(make))
                     {
+                        Dis();
                         return RedirectToAction("Index", "Make");
                     }
                     else
@@ -198,9 +207,8 @@ namespace VehicleCatalog.Controllers
 
                 return BadRequest(e);
             }
-
-
-
         }
+
+        private void Dis() { unit.Dispose(); }
     }
 }

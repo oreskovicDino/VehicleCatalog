@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using VehicleCatalog.Service.Models;
+﻿using VehicleCatalog.Service.Models;
 using X.PagedList;
 
 namespace VehicleCatalog.Models.MakeView
