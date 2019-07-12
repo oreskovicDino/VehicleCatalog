@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VehicleCatalog.Service
+﻿namespace VehicleCatalog.Service
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContex contex;
 
-        public UnitOfWork(ApplicationDbContex contex)
+        public UnitOfWork(ApplicationDbContex contex, IMakeService makeService, IModelService modelService)
         {
+            Makes = makeService;
+            Models = modelService;
             this.contex = contex;
-            Makes = new MakeService(contex);
-            Models = new ModelService(contex);
         }
 
         public IMakeService Makes { get; set; }

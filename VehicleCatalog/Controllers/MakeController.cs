@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 using VehicleCatalog.Models;
 using VehicleCatalog.Models.MakeView;
 using VehicleCatalog.Service;
@@ -71,7 +71,7 @@ namespace VehicleCatalog.Controllers
                         MakeDetail = mapper.Map<VehicleMakeVM>(make),
                         ModelList = models
                     };
-                    Dispose();
+                    Dis();
                     return View(makeDetail);
                 }
                 else
@@ -107,7 +107,7 @@ namespace VehicleCatalog.Controllers
                 {
                     var makeForCreation = mapper.Map<Make>(make);
                     await unit.Makes.Add(makeForCreation);
-                    Dispose();
+                    Dis();
                     return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
                 }
 
