@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VehicleCatalog.Service.Models
+﻿namespace VehicleCatalog.Service.Models
 {
     // Interface for paging content
     public interface IPagination

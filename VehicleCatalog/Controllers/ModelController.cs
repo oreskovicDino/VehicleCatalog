@@ -29,6 +29,8 @@ namespace VehicleCatalog.Controllers
             this.mapper = mapper;
         }
 
+        #region Index
+
         // (Index Page) Selects all records from the Models table.
         // GET: /Model/Index
         public async Task<IActionResult> Index(int? page, string search, string sort)
@@ -48,10 +50,12 @@ namespace VehicleCatalog.Controllers
                 SearchString = search,
                 Pagination = paging
             };
-            Dis();
+            DisposeOf();
             return View(model);
         }
+        #endregion
 
+        #region Detail
 
         // (Detail Page) Selects a single record from the Models table. 
         // GET: /Model/Detail/id
@@ -76,7 +80,7 @@ namespace VehicleCatalog.Controllers
                         Abrv = model.Abrv,
                         MakeId = model.MakeId
                     };
-                    Dis();
+                    DisposeOf();
                     return View(detailModel);
                 }
                 else
@@ -90,6 +94,9 @@ namespace VehicleCatalog.Controllers
             }
         }
 
+        #endregion
+
+        #region SelectMake
 
         // (SelectMake Page) Selects all records record from the Makes table. 
         // GET: /Model/SelectMake/id
@@ -107,10 +114,12 @@ namespace VehicleCatalog.Controllers
                 SearchString = search,
                 SortStatus = sort
             };
-            Dis();
+            DisposeOf();
             return View(make);
         }
+        #endregion
 
+        #region Create
 
         // (Create Page) selects a single record from the Makes table. 
         // GET: /Model/Create?makeId
@@ -128,7 +137,7 @@ namespace VehicleCatalog.Controllers
                 DetailMakeName = makeForModel.Name
             };
 
-            Dis();
+            DisposeOf();
             return View(createModel);
         }
 
@@ -144,8 +153,9 @@ namespace VehicleCatalog.Controllers
                 if (ModelState.IsValid)
                 {
 
-                    await unit.Models.Add(modelForCreation);
-                    Dis();
+                    unit.Models.Add(modelForCreation);
+                    await unit.Commit();
+                    DisposeOf();
                     return RedirectToAction("Detail", "Model", new { id = modelForCreation.Id });
                 }
                 else
@@ -166,7 +176,9 @@ namespace VehicleCatalog.Controllers
             }
 
         }
+        #endregion
 
+        #region Update
 
         // Updates a record from table Models.
         //
@@ -175,9 +187,10 @@ namespace VehicleCatalog.Controllers
         {
             try
             {
-                if (await unit.Models.Update(mapper.Map<Model>(model)))
+                unit.Models.Update(mapper.Map<Model>(model));
+                if (await unit.Commit())
                 {
-                    Dis();
+                    DisposeOf();
                     return RedirectToAction("Detail", "Model", new { id = model.Id });
                 }
                 return BadRequest("Something went wrong");
@@ -187,7 +200,9 @@ namespace VehicleCatalog.Controllers
                 return BadRequest();
             }
         }
+        #endregion
 
+        #region Delete
 
         // Removes a record from table Models.
         //
@@ -198,10 +213,10 @@ namespace VehicleCatalog.Controllers
                 if (id.HasValue)
                 {
                     Model modelForDeletion = await unit.Models.GetById(id);
-
-                    if (await unit.Models.Remove(modelForDeletion))
+                    unit.Models.Remove(modelForDeletion);
+                    if (await unit.Commit())
                     {
-                        Dis();
+                        DisposeOf();
                         return RedirectToAction("Index", "Model");
                     }
                     else
@@ -220,7 +235,8 @@ namespace VehicleCatalog.Controllers
                 return BadRequest(e);
             }
         }
+        #endregion
 
-        private void Dis() { unit.Dispose(); }
+        private void DisposeOf() { unit.Dispose(); }
     }
 }

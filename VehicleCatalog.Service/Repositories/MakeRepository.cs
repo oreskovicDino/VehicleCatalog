@@ -8,15 +8,18 @@ using X.PagedList;
 
 namespace VehicleCatalog.Service
 {
-    public class MakeService : VehicleService<Make>, IMakeService
+    public class MakeRepository : BaseRepository<Make>, IMakeRepository
     {
         private readonly ApplicationDbContex context;
 
-        public MakeService(ApplicationDbContex context) : base(context)
+        public MakeRepository(ApplicationDbContex context) : base(context)
         {
             this.context = context;
         }
 
+        #region GetAll
+
+        //<summary>GetAll</summary>
         // Selects all records from the Makes table. With paging, sorting, filtering 
         public async Task<IPagedList<Make>> GetAll(IPagination pagination, ISort sorting, IFilter filter)
         {
@@ -48,6 +51,9 @@ namespace VehicleCatalog.Service
             IPagedList<Make> make = await query.ToPagedListAsync((pagination.CurrentPage ?? 1), (pagination.Size ?? 5));
             return make;
         }
+        #endregion
+
+        #region GetById
 
         // Selects a single record from the Makes table.
         public async Task<Make> GetById(int? id)
@@ -62,22 +68,25 @@ namespace VehicleCatalog.Service
             return make;
 
         }
+        #endregion
 
-        // Updates a record from table Makes.
-        public async Task<bool> Update(Make make)
+        #region Update
+
+        // Updates a single record in table Make
+        public void Update(Make make)
         {
+            if (make == null)
+            {
+                throw new ArgumentNullException(nameof(make));
+            }
             context.Update(make);
-
             IEnumerable<Model> models = context.Models.Where(m => m.MakeId == make.Id);
-
             foreach (var model in models)
             {
                 model.Abrv = make.Abrv;
                 context.Update(model);
             }
-
-            return (await context.SaveChangesAsync() > 0);
-
         }
+        #endregion
     }
 }

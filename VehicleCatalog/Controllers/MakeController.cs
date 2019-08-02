@@ -16,6 +16,8 @@ namespace VehicleCatalog.Controllers
         private readonly IUnitOfWork unit;
         private readonly IMapper mapper;
 
+
+
         public MakeController(IUnitOfWork unit, IMapper mapper)
         {
             //this.service = service;
@@ -23,6 +25,7 @@ namespace VehicleCatalog.Controllers
             this.mapper = mapper;
         }
 
+        #region Index
 
         // (Index Page) Selects all records from the Makes table. 
         // GET: /Make/Index
@@ -36,18 +39,21 @@ namespace VehicleCatalog.Controllers
 
             IPagedList<Make> makePage = await unit.Makes.GetAll(paging, sorting, filter);
 
+
             var make = new MakeIndexModel
             {
                 MakeList = makePage,
                 SortStatus = sort,
                 SearchString = search,
-                Pagination = paging
+                Pagination = new Pagination() { CurrentPage = page }
             };
 
-            Dis();
+            DisposeOf();
             return View(make);
         }
+        #endregion
 
+        #region Detail
 
         // (Detail Page) Selects a single record from the Makes table. 
         // GET: /Make/Detail/id
@@ -61,7 +67,6 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
-                    //Make make = await service.GetById(id);
                     Make make = await unit.Makes.GetById(id);
                     IPagedList<Model> models = await unit.Models.GetModelsByMake(make, paging);
 
@@ -71,7 +76,7 @@ namespace VehicleCatalog.Controllers
                         MakeDetail = mapper.Map<VehicleMakeVM>(make),
                         ModelList = models
                     };
-                    Dis();
+                    DisposeOf();
                     return View(makeDetail);
                 }
                 else
@@ -87,7 +92,9 @@ namespace VehicleCatalog.Controllers
             }
 
         }
+        #endregion
 
+        #region Create
 
         // (Create Page)
         // GET: /Make/Create
@@ -106,8 +113,9 @@ namespace VehicleCatalog.Controllers
                 if (ModelState.IsValid)
                 {
                     var makeForCreation = mapper.Map<Make>(make);
-                    await unit.Makes.Add(makeForCreation);
-                    Dis();
+                    unit.Makes.Add(makeForCreation);
+                    await unit.Commit();
+                    DisposeOf();
                     return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
                 }
 
@@ -118,7 +126,9 @@ namespace VehicleCatalog.Controllers
                 return BadRequest(e);
             }
         }
+        #endregion
 
+        #region Update
 
         // (Update Page) selects a single record from the Makes table.
         // GET: /Make/Update/id
@@ -138,7 +148,7 @@ namespace VehicleCatalog.Controllers
                         Abrv = make.Abrv
                     };
 
-                    Dis();
+                    DisposeOf();
                     return View(makeDetail);
 
                 }
@@ -160,9 +170,10 @@ namespace VehicleCatalog.Controllers
         {
             try
             {
-                if (await unit.Makes.Update(mapper.Map<Make>(make)))
+                unit.Makes.Update(mapper.Map<Make>(make));
+                if (await unit.Commit())
                 {
-                    Dis();
+                    DisposeOf();
                     return RedirectToAction("Detail", "Make", new { id = make.Id });
                 }
 
@@ -174,7 +185,9 @@ namespace VehicleCatalog.Controllers
                 return BadRequest(e);
             }
         }
+        #endregion
 
+        #region Delete
 
         // Removes a record from table Makes.
         //
@@ -186,9 +199,11 @@ namespace VehicleCatalog.Controllers
                 {
                     Make make = await unit.Makes.GetById(id);
 
-                    if (await unit.Makes.Remove(make))
+                    unit.Makes.Remove(make);
+
+                    if (await unit.Commit())
                     {
-                        Dis();
+                        DisposeOf();
                         return RedirectToAction("Index", "Make");
                     }
                     else
@@ -208,7 +223,8 @@ namespace VehicleCatalog.Controllers
                 return BadRequest(e);
             }
         }
+        #endregion
 
-        private void Dis() { unit.Dispose(); }
+        private void DisposeOf() { unit.Dispose(); }
     }
 }

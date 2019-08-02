@@ -4,7 +4,7 @@ using X.PagedList;
 
 namespace VehicleCatalog.Service
 {
-    public interface IModelService : IVehicleService<Model>
+    public interface IModelRepository : IBaseRepository<Model>
     {
         // Selects all records from the Models table. With paging, sorting, filtering
         Task<IPagedList<Model>> GetAll(IPagination pagination, ISort sorting, IFilter filter);
@@ -16,20 +16,7 @@ namespace VehicleCatalog.Service
         Task<IPagedList<Model>> GetModelsByMake(Make make, IPagination pagination);
 
         // Updates a record from table Models.
-        Task<bool> Update(Model model);
+        void Update(Model model);
 
-        Task<Model> GetModelForDetail(int? id);
-
-
-
-
-
-
-
-        //// Adds a record to table Makes or Models.
-        //Task<bool> Create(Model model);
-
-        //// Removes a record from table Models.
-        //Task<bool> Delete(int? id);
     }
 }

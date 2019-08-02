@@ -1,23 +1,22 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using VehicleCatalog.Service.Models;
 using X.PagedList;
 
 namespace VehicleCatalog.Service
 {
-    public class ModelService : VehicleService<Model>, IModelService
+    public class ModelRepository : BaseRepository<Model>, IModelRepository
     {
         private readonly ApplicationDbContex context;
 
-        public ModelService(ApplicationDbContex context) : base(context)
+        public ModelRepository(ApplicationDbContex context) : base(context)
         {
             this.context = context;
         }
+
+        #region GetAll
 
         public async Task<IPagedList<Model>> GetAll(IPagination pagination, ISort sorting, IFilter filter)
         {
@@ -57,6 +56,9 @@ namespace VehicleCatalog.Service
             //}
         }
 
+        #endregion
+
+        #region GetById
         public async Task<Model> GetById(int? id)
         {
             if (id == null)
@@ -70,7 +72,9 @@ namespace VehicleCatalog.Service
             return model;
             //}
         }
+        #endregion
 
+        #region GetModelsByMake
         public async Task<IPagedList<Model>> GetModelsByMake(Make make, IPagination pagination)
         {
             if (make == null)
@@ -81,26 +85,19 @@ namespace VehicleCatalog.Service
             IPagedList<Model> modelByMake = await make.Models.ToPagedListAsync((pagination.CurrentPage ?? 1), (pagination.Size ?? 7));
             return modelByMake;
         }
+        #endregion
 
-        public async Task<bool> Update(Model model)
+        #region Update
+        public void Update(Model model)
         {
             if (model == null)
             {
                 throw new ArgumentNullException(nameof(model));
             }
 
-            //using (context)
-            //{
             context.Update(model);
-            return (await context.SaveChangesAsync() > 0);
-            //}
         }
-
-        public async Task<Model> GetModelForDetail(int? id)
-        {
-            Model model = await context.Models.Where(mod => mod.Id == id).FirstOrDefaultAsync();
-            return model;
-        }
+        #endregion
 
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using VehicleCatalog.Models;
 using VehicleCatalog.Service;
+using VehicleCatalog.Service.Models;
 
 namespace VehicleCatalog
 {
@@ -36,23 +37,37 @@ namespace VehicleCatalog
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            #region Context
             services.AddDbContext<ApplicationDbContex>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            #endregion
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            #region AutoMapper
 
             var configMapper = new AutoMapper.MapperConfiguration(cfg => { cfg.AddProfile(new AutoMapperProfiles()); });
             var mapper = configMapper.CreateMapper();
             services.AddSingleton(mapper);
+            #endregion
+
+            #region Autofac (Without ConfigureContainer)
 
             //Autofac component registration through reflection (Without ConfigureContainer)
             var builder = new ContainerBuilder();
             builder.Populate(services);
-            builder.RegisterType<UnitOfWork>().As<IUnitOfWork>();
-            builder.RegisterType<MakeService>().As<IMakeService>();
-            builder.RegisterType<ModelService>().As<IModelService>();
+            builder.RegisterType<UnitOfWork>().As<IUnitOfWork>().InstancePerLifetimeScope();
+            builder.RegisterType<MakeRepository>().As<IMakeRepository>().InstancePerLifetimeScope();
+            builder.RegisterType<ModelRepository>().As<IModelRepository>().InstancePerLifetimeScope();
+            builder.RegisterType<Pagination>().As<IPagination>().InstancePerRequest();
+            builder.RegisterType<Sort>().As<ISort>().InstancePerRequest();
+            builder.RegisterType<Filter>().As<IFilter>().InstancePerRequest();
             this.AppContainer = builder.Build();
             return new AutofacServiceProvider(this.AppContainer);
+            #endregion
 
         }
+
+        #region AutoFac (With ConfigureContainer)
 
         /*//Autofac adding a module to container (With ConfigureContainer)
 
@@ -61,6 +76,7 @@ namespace VehicleCatalog
             builder.RegisterModule(new AutofacModule());
         }
         */
+        #endregion
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

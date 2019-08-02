@@ -15,7 +15,5 @@ namespace VehicleCatalog
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)/*.ConfigureServices(services => services.AddAutofac()) (For when we use ConfigureContainer) */
                 .UseStartup<Startup>();
-
-        //.ConfigureServices(services => services.AddAutofac())
     }
 }
