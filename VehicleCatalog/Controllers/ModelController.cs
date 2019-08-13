@@ -13,19 +13,16 @@ namespace VehicleCatalog.Controllers
     //Model administration view (CRUD with Sorting, Filtering & Paging)
     public class ModelController : Controller
     {
-        private readonly IUnitOfWork unit;
+        #region Fields
 
-        //private readonly IModelService service;
-        //private readonly IMakeService makeService;
-
-
+        private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
 
-        public ModelController(IUnitOfWork unit, IMapper mapper)
+        #endregion
+
+        public ModelController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            //this.service = service;
-            //this.makeService = makeService;
-            this.unit = unit;
+            this.unitOfWork = unitOfWork;
             this.mapper = mapper;
         }
 
@@ -41,7 +38,8 @@ namespace VehicleCatalog.Controllers
             ISort sorting = new Sort() { Sorting = sort };
             IFilter filter = new Filter() { FilterString = search };
 
-            IPagedList<Model> modelPage = await unit.Models.GetAll(paging, sorting, filter);
+            //IPagedList<VehicleModelVM> modelPage = mapper.Map<IPagedList<VehicleModelVM>>(await unitOfWork.ModelService.GetModelsAsync(paging, sorting, filter));
+            IPagedList<Model> modelPage = await unitOfWork.ModelService.GetModelsAsync(paging, sorting, filter);
 
             var model = new ModelIndexModel
             {
@@ -50,9 +48,9 @@ namespace VehicleCatalog.Controllers
                 SearchString = search,
                 Pagination = paging
             };
-            DisposeOf();
             return View(model);
         }
+
         #endregion
 
         #region Detail
@@ -67,20 +65,16 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
-                    Model model = await unit.Models.GetById(id);
-                    //Make make = await unit.Makes.GetById(model.MakeId);
-                    //var modelDetail = model.ModelByID;
+                    Model model = await unitOfWork.ModelService.GetModelAsync(id);
 
                     DetailModel detailModel = new DetailModel
                     {
                         ModelDetail = mapper.Map<VehicleModelVM>(model),
-                        //MakeDetail = mapper.Map<MakeForDetailDto>(make),
-                        MakeDetail = await unit.Makes.GetById(model.MakeId),
+                        MakeDetail = mapper.Map<VehicleMakeVM>(await unitOfWork.MakeService.GetMakeAsync(model.MakeId)),
                         Id = model.Id,
                         Abrv = model.Abrv,
                         MakeId = model.MakeId
                     };
-                    DisposeOf();
                     return View(detailModel);
                 }
                 else
@@ -106,17 +100,18 @@ namespace VehicleCatalog.Controllers
             ISort sorting = new Sort() { Sorting = sort };
             IFilter filter = new Filter() { FilterString = search };
 
-            IPagedList<Make> makePage = await unit.Makes.GetAll(paging, sorting, filter);
-            var make = new ModelIndexModel
+            IPagedList<Make> makePage = await unitOfWork.MakeService.GetMakesAsync(paging, sorting, filter);
+
+            var make = new SelectMakeModel
             {
                 MakeList = makePage,
                 Pagination = paging,
                 SearchString = search,
                 SortStatus = sort
             };
-            DisposeOf();
             return View(make);
         }
+
         #endregion
 
         #region Create
@@ -127,8 +122,7 @@ namespace VehicleCatalog.Controllers
         {
             ViewData["Title"] = "Models | Create | ";
 
-            Make make = await unit.Makes.GetById(makeId);
-            var makeForModel = mapper.Map<VehicleMakeVM>(make);
+            VehicleMakeVM makeForModel = mapper.Map<VehicleMakeVM>(await unitOfWork.MakeService.GetMakeAsync(makeId));
 
             var createModel = new CreateModel
             {
@@ -136,14 +130,10 @@ namespace VehicleCatalog.Controllers
                 MakeId = makeForModel.Id,
                 DetailMakeName = makeForModel.Name
             };
-
-            DisposeOf();
             return View(createModel);
         }
 
         // Adds a record to table Models.
-        //
-
         [HttpPost]
         public async Task<IActionResult> Create(VehicleModelVM model)
         {
@@ -153,10 +143,15 @@ namespace VehicleCatalog.Controllers
                 if (ModelState.IsValid)
                 {
 
-                    unit.Models.Add(modelForCreation);
-                    await unit.Commit();
-                    DisposeOf();
-                    return RedirectToAction("Detail", "Model", new { id = modelForCreation.Id });
+                    unitOfWork.ModelService.Create(modelForCreation);
+                    if (await unitOfWork.Commit())
+                    {
+                        return RedirectToAction("Detail", "Model", new { id = modelForCreation.Id });
+                    }
+                    else
+                    {
+                        return BadRequest("Something went wrong");
+                    }
                 }
                 else
                 {
@@ -176,21 +171,20 @@ namespace VehicleCatalog.Controllers
             }
 
         }
+
         #endregion
 
         #region Update
 
         // Updates a record from table Models.
-        //
         [HttpPost]
         public async Task<IActionResult> Update(VehicleModelVM model)
         {
             try
             {
-                unit.Models.Update(mapper.Map<Model>(model));
-                if (await unit.Commit())
+                unitOfWork.ModelService.Update(mapper.Map<Model>(model));
+                if (await unitOfWork.Commit())
                 {
-                    DisposeOf();
                     return RedirectToAction("Detail", "Model", new { id = model.Id });
                 }
                 return BadRequest("Something went wrong");
@@ -200,23 +194,21 @@ namespace VehicleCatalog.Controllers
                 return BadRequest();
             }
         }
+
         #endregion
 
         #region Delete
 
         // Removes a record from table Models.
-        //
         public async Task<IActionResult> Delete(int? id)
         {
             try
             {
                 if (id.HasValue)
                 {
-                    Model modelForDeletion = await unit.Models.GetById(id);
-                    unit.Models.Remove(modelForDeletion);
-                    if (await unit.Commit())
+                    unitOfWork.ModelService.Delete(id);
+                    if (await unitOfWork.Commit())
                     {
-                        DisposeOf();
                         return RedirectToAction("Index", "Model");
                     }
                     else
@@ -235,8 +227,8 @@ namespace VehicleCatalog.Controllers
                 return BadRequest(e);
             }
         }
+
         #endregion
 
-        private void DisposeOf() { unit.Dispose(); }
     }
 }

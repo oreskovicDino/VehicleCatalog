@@ -11,6 +11,8 @@ using System;
 using VehicleCatalog.Models;
 using VehicleCatalog.Service;
 using VehicleCatalog.Service.Models;
+using VehicleCatalog.Service.Services;
+using VehicleCatalog.Service.Services.Common;
 
 namespace VehicleCatalog
 {
@@ -32,7 +34,6 @@ namespace VehicleCatalog
         {
             services.Configure<CookiePolicyOptions>(options =>
             {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
@@ -41,7 +42,11 @@ namespace VehicleCatalog
             services.AddDbContext<ApplicationDbContex>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             #endregion
 
+            #region MVC
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            #endregion
 
             #region AutoMapper
 
@@ -55,12 +60,16 @@ namespace VehicleCatalog
             //Autofac component registration through reflection (Without ConfigureContainer)
             var builder = new ContainerBuilder();
             builder.Populate(services);
+
             builder.RegisterType<UnitOfWork>().As<IUnitOfWork>().InstancePerLifetimeScope();
-            builder.RegisterType<MakeRepository>().As<IMakeRepository>().InstancePerLifetimeScope();
-            builder.RegisterType<ModelRepository>().As<IModelRepository>().InstancePerLifetimeScope();
+
+            builder.RegisterType<MakeService>().As<IMakeService>().InstancePerLifetimeScope();
+            builder.RegisterType<ModelService>().As<IModelService>().InstancePerLifetimeScope();
+
             builder.RegisterType<Pagination>().As<IPagination>().InstancePerRequest();
             builder.RegisterType<Sort>().As<ISort>().InstancePerRequest();
             builder.RegisterType<Filter>().As<IFilter>().InstancePerRequest();
+
             this.AppContainer = builder.Build();
             return new AutofacServiceProvider(this.AppContainer);
             #endregion

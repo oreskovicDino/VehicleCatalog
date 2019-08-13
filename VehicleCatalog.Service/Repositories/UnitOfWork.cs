@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using VehicleCatalog.Service.Services.Common;
 
 namespace VehicleCatalog.Service
 {
@@ -6,16 +7,16 @@ namespace VehicleCatalog.Service
     {
         private readonly ApplicationDbContex context;
 
-        public UnitOfWork(ApplicationDbContex context, IMakeRepository makeService, IModelRepository modelService)
+        public IMakeService MakeService { get; }
+        public IModelService ModelService { get; }
+
+        public UnitOfWork(ApplicationDbContex context, IMakeService makeService, IModelService modelService)
         {
-            Makes = makeService;
-            Models = modelService;
             this.context = context;
+            MakeService = makeService;
+            ModelService = modelService;
         }
 
-        public IMakeRepository Makes { get; set; }
-
-        public IModelRepository Models { get; set; }
 
         public void Dispose()
         {

@@ -13,16 +13,17 @@ namespace VehicleCatalog.Controllers
     // Make administration view (CRUD with Sorting, Filtering & Paging)
     public class MakeController : Controller
     {
-        private readonly IUnitOfWork unit;
+        #region Fields
+
         private readonly IMapper mapper;
+        private readonly IUnitOfWork unitOfWork;
 
+        #endregion
 
-
-        public MakeController(IUnitOfWork unit, IMapper mapper)
+        public MakeController(IMapper mapper, IUnitOfWork unitOfWork)
         {
-            //this.service = service;
-            this.unit = unit;
             this.mapper = mapper;
+            this.unitOfWork = unitOfWork;
         }
 
         #region Index
@@ -37,20 +38,20 @@ namespace VehicleCatalog.Controllers
             ISort sorting = new Sort() { Sorting = sort };
             IFilter filter = new Filter() { FilterString = search };
 
-            IPagedList<Make> makePage = await unit.Makes.GetAll(paging, sorting, filter);
-
+            //IPagedList<VehicleMakeVM> makePage = mapper.Map<IPagedList<VehicleMakeVM>>(pp);
+            var makePage = await unitOfWork.MakeService.GetMakesAsync(paging, sorting, filter);
 
             var make = new MakeIndexModel
             {
                 MakeList = makePage,
                 SortStatus = sort,
                 SearchString = search,
-                Pagination = new Pagination() { CurrentPage = page }
+                Pagination = paging
             };
 
-            DisposeOf();
             return View(make);
         }
+
         #endregion
 
         #region Detail
@@ -67,8 +68,8 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
-                    Make make = await unit.Makes.GetById(id);
-                    IPagedList<Model> models = await unit.Models.GetModelsByMake(make, paging);
+                    Make make = await unitOfWork.MakeService.GetMakeAsync(id);
+                    IPagedList<Model> models = await unitOfWork.MakeService.GetModelsByMake(make, paging);
 
 
                     var makeDetail = new MakeDetailModel
@@ -76,7 +77,6 @@ namespace VehicleCatalog.Controllers
                         MakeDetail = mapper.Map<VehicleMakeVM>(make),
                         ModelList = models
                     };
-                    DisposeOf();
                     return View(makeDetail);
                 }
                 else
@@ -90,8 +90,8 @@ namespace VehicleCatalog.Controllers
 
                 return BadRequest(e);
             }
-
         }
+
         #endregion
 
         #region Create
@@ -110,13 +110,18 @@ namespace VehicleCatalog.Controllers
         {
             try
             {
+                var makeForCreation = mapper.Map<Make>(make);
                 if (ModelState.IsValid)
                 {
-                    var makeForCreation = mapper.Map<Make>(make);
-                    unit.Makes.Add(makeForCreation);
-                    await unit.Commit();
-                    DisposeOf();
-                    return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
+                    unitOfWork.MakeService.Create(makeForCreation);
+                    if (await unitOfWork.Commit())
+                    {
+                        return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
+                    }
+                    else
+                    {
+                        return BadRequest("Something went wrong");
+                    }
                 }
 
                 return View();
@@ -126,6 +131,7 @@ namespace VehicleCatalog.Controllers
                 return BadRequest(e);
             }
         }
+
         #endregion
 
         #region Update
@@ -140,15 +146,14 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
-                    var make = await unit.Makes.GetById(id);
+                    var make = await unitOfWork.MakeService.GetMakeAsync(id);
+
                     var makeDetail = new MakeUpdateModel
                     {
                         Id = make.Id,
                         Name = make.Name,
-                        Abrv = make.Abrv
+                        Abrv = make.Abrv,
                     };
-
-                    DisposeOf();
                     return View(makeDetail);
 
                 }
@@ -170,10 +175,12 @@ namespace VehicleCatalog.Controllers
         {
             try
             {
-                unit.Makes.Update(mapper.Map<Make>(make));
-                if (await unit.Commit())
+                Make makeForupdate = mapper.Map<Make>(make);
+                unitOfWork.MakeService.Update(makeForupdate);
+                unitOfWork.ModelService.UpdateModels(makeForupdate);
+
+                if (await unitOfWork.Commit())
                 {
-                    DisposeOf();
                     return RedirectToAction("Detail", "Make", new { id = make.Id });
                 }
 
@@ -185,25 +192,22 @@ namespace VehicleCatalog.Controllers
                 return BadRequest(e);
             }
         }
+
         #endregion
 
         #region Delete
 
         // Removes a record from table Makes.
-        //
         public async Task<IActionResult> Delete(int? id)
         {
             try
             {
                 if (id.HasValue)
                 {
-                    Make make = await unit.Makes.GetById(id);
+                    unitOfWork.MakeService.Delete(id);
 
-                    unit.Makes.Remove(make);
-
-                    if (await unit.Commit())
+                    if (await unitOfWork.Commit())
                     {
-                        DisposeOf();
                         return RedirectToAction("Index", "Make");
                     }
                     else
@@ -223,8 +227,8 @@ namespace VehicleCatalog.Controllers
                 return BadRequest(e);
             }
         }
+
         #endregion
 
-        private void DisposeOf() { unit.Dispose(); }
     }
 }

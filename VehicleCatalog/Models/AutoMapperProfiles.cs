@@ -8,8 +8,8 @@ namespace VehicleCatalog.Models
         public AutoMapperProfiles()
         {
             CreateMap<Make, VehicleMakeVM>().ReverseMap();
+
             CreateMap<Model, VehicleModelVM>().ReverseMap();
-          
         }
     }
 }
