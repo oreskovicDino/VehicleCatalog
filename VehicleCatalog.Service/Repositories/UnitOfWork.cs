@@ -7,14 +7,9 @@ namespace VehicleCatalog.Service
     {
         private readonly ApplicationDbContex context;
 
-        public IMakeService MakeService { get; }
-        public IModelService ModelService { get; }
-
-        public UnitOfWork(ApplicationDbContex context, IMakeService makeService, IModelService modelService)
+        public UnitOfWork(ApplicationDbContex context)
         {
             this.context = context;
-            MakeService = makeService;
-            ModelService = modelService;
         }
 
 
@@ -23,9 +18,9 @@ namespace VehicleCatalog.Service
             context.Dispose();
         }
 
-        public async Task<bool> Commit()
+        public void Save()
         {
-            return (await context.SaveChangesAsync() > 0);
+            context.SaveChanges();
         }
     }
 }

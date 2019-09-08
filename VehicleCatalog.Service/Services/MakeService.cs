@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VehicleCatalog.Service.Models;
 using VehicleCatalog.Service.Repositories;
+using VehicleCatalog.Service.Repositories.Common;
 using VehicleCatalog.Service.Services.Common;
 using X.PagedList;
 
@@ -11,21 +12,28 @@ namespace VehicleCatalog.Service.Services
 {
     public class MakeService : IMakeService
     {
-
         #region Fields
 
-        private readonly GenericRepository<Make> makeReposotory;
-        private readonly ApplicationDbContex context;
+        private readonly IMakeRepository makeRepository;
+        private readonly IModelRepository modelRepository;
 
         #endregion
 
-        public MakeService(ApplicationDbContex context)
+        public MakeService(IMakeRepository makeRepository, IModelRepository modelRepository)
         {
-            this.makeReposotory = new GenericRepository<Make>(context);
-            this.context = context;
+            this.makeRepository = makeRepository;
+            this.modelRepository = modelRepository;
         }
 
-        #region Create
+        public async Task<IPagedList<Make>> GetPagedMakesAsync(IPagination pagination, ISort sort, IFilter filter)
+        {
+            return await makeRepository.GetMakesAsync(pagination, sort, filter);
+        }
+
+        public async Task<Make> GetMakeAsync(int? id)
+        {
+            return await makeRepository.GetMakeAsync(id);
+        }
 
         public void Create(Make make)
         {
@@ -34,100 +42,38 @@ namespace VehicleCatalog.Service.Services
                 throw new ArgumentNullException(nameof(make));
             }
 
-            makeReposotory.Create(make);
+            makeRepository.Create(make);
         }
 
-        #endregion
-
-        #region GetMakesAsync
-
-        public async Task<IPagedList<Make>> GetMakesAsync(IPagination pagination, ISort sort, IFilter filter)
+        public void Update(Make make)
         {
-            return await makeReposotory.GetPagedList(
-                (IQueryable<Make> query) =>
-                {
-                    if (!String.IsNullOrEmpty(filter.FilterString))
-                    {
-                        query = query.Where(m => m.Name.Contains(filter.FilterString) || m.Abrv.Contains(filter.FilterString));
-                    }
-
-                    switch (sort.Sorting)
-                    {
-                        case "NameDesc":
-                            return query.OrderByDescending(o => o.Name);
-                        case "AbrvAsc":
-                            return query.OrderBy(o => o.Abrv);
-                        case "AbrvDesc":
-                            return query.OrderByDescending(o => o.Abrv);
-                        default:
-                            return query.OrderBy(o => o.Name);
-                    }
-                },
-                pagination
-                );
-        }
-
-        #endregion
-
-        #region GetMakeAsync
-
-        public async Task<Make> GetMakeAsync(int? id)
-        {
-            if (id == null)
+            if (make == null)
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException(nameof(make));
             }
-
-            return await makeReposotory.GetSingleItem
-                (
-                    (IQueryable<Make> query) =>
-                    {
-                        return query.Where(m => m.Id == id).Include(m => m.Models);
-                    }
-                );
+            makeRepository.Update(make);
         }
-
-        #endregion
-
-        #region Delete
 
         public void Delete(int? id)
         {
             if (id == null)
             {
-                throw new ArgumentNullException("Id wasn't valid ");
+                throw new ArgumentNullException("Id wasn't valid");
             }
-            makeReposotory.Delete(id);
+
+            makeRepository.Delete(id);
         }
 
-        #endregion
+        #region Model
 
-        #region Update
-
-        public void Update(Make makeToUpdate)
-        {
-            if (makeToUpdate == null)
-            {
-                throw new ArgumentNullException(nameof(makeToUpdate));
-            }
-            makeReposotory.Update(makeToUpdate);
-        }
-
-        #endregion
-
-        #region GetModelsByMake
-
-        public async Task<IPagedList<Model>> GetModelsByMake(Make make, IPagination pagination)
+        public void UpdateModels(Make make)
         {
             if (make == null)
             {
-                throw new ArgumentNullException("Something went wrong!!");
-            }
-            else
-            {
-                return await make.Models.ToPagedListAsync((pagination.CurrentPage ?? 1), (pagination.Size ?? 7));
+                throw new ArgumentNullException(nameof(make));
             }
 
+            modelRepository.UpdateModels(make);
         }
 
         #endregion

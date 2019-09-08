@@ -12,13 +12,15 @@ namespace VehicleCatalog.Service.Repositories
         #region Fields
 
         internal ApplicationDbContex context;
+        private readonly IUnitOfWork unitOfWork;
         internal DbSet<TEntity> dbSet;
 
         #endregion
 
-        public GenericRepository(ApplicationDbContex context)
+        public GenericRepository(ApplicationDbContex context, IUnitOfWork unitOfWork)
         {
             this.context = context;
+            this.unitOfWork = unitOfWork;
             this.dbSet = context.Set<TEntity>();
         }
 
@@ -27,6 +29,8 @@ namespace VehicleCatalog.Service.Repositories
         public void Create(TEntity entity)
         {
             dbSet.Add(entity);
+            //context.SaveChanges();
+            unitOfWork.Save();
         }
 
         #endregion
@@ -62,15 +66,15 @@ namespace VehicleCatalog.Service.Repositories
         public void Update(TEntity entityToUpdate)
         {
             dbSet.Update(entityToUpdate);
-            //dbSet.Attach(entityToUpdate);
-            //context.Entry(entityToUpdate).State = EntityState.Modified;
+            unitOfWork.Save();
         }
 
         public void UpdateRange(Action<IQueryable<TEntity>, DbSet<TEntity>> delegateQuery)
         {
             IQueryable<TEntity> query = dbSet;
             delegateQuery(query, dbSet);
-            //dbSet.UpdateRange(delegateQuery(query));
+            //context.SaveChanges();
+            unitOfWork.Save();
         }
 
         #endregion
@@ -90,6 +94,7 @@ namespace VehicleCatalog.Service.Repositories
                 dbSet.Attach(entityToDelete);
             }
             dbSet.Remove(entityToDelete);
+            unitOfWork.Save();
         }
 
         #endregion

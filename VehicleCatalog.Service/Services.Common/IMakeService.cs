@@ -6,17 +6,16 @@ namespace VehicleCatalog.Service.Services.Common
 {
     public interface IMakeService
     {
-        void Create(Make make);
-
-        Task<IPagedList<Make>> GetMakesAsync(IPagination pagination, ISort sort, IFilter flter);
+        Task<IPagedList<Make>> GetPagedMakesAsync(IPagination pagination, ISort sort, IFilter filter);
 
         Task<Make> GetMakeAsync(int? id);
 
+        void Create(Make make);
+
+        void Update(Make make);
+
+        void UpdateModels(Make make);
+
         void Delete(int? id);
-
-        void Update(Make makeToUpdate);
-
-        Task<IPagedList<Model>> GetModelsByMake(Make make, IPagination pagination);
-
     }
 }

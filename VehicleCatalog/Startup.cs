@@ -13,6 +13,8 @@ using VehicleCatalog.Service;
 using VehicleCatalog.Service.Models;
 using VehicleCatalog.Service.Services;
 using VehicleCatalog.Service.Services.Common;
+using VehicleCatalog.Service.Repositories;
+using VehicleCatalog.Service.Repositories.Common;
 
 namespace VehicleCatalog
 {
@@ -65,6 +67,9 @@ namespace VehicleCatalog
 
             builder.RegisterType<MakeService>().As<IMakeService>().InstancePerLifetimeScope();
             builder.RegisterType<ModelService>().As<IModelService>().InstancePerLifetimeScope();
+
+            builder.RegisterType<MakeRepository>().As<IMakeRepository>().InstancePerLifetimeScope();
+            builder.RegisterType<ModelRepository>().As<IModelRepository>().InstancePerLifetimeScope();
 
             builder.RegisterType<Pagination>().As<IPagination>().InstancePerRequest();
             builder.RegisterType<Sort>().As<ISort>().InstancePerRequest();

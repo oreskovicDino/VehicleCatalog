@@ -6,6 +6,7 @@ using VehicleCatalog.Models;
 using VehicleCatalog.Models.ModelView;
 using VehicleCatalog.Service;
 using VehicleCatalog.Service.Models;
+using VehicleCatalog.Service.Services.Common;
 using X.PagedList;
 
 namespace VehicleCatalog.Controllers
@@ -15,14 +16,14 @@ namespace VehicleCatalog.Controllers
     {
         #region Fields
 
-        private readonly IUnitOfWork unitOfWork;
+        private readonly IModelService modelService;
         private readonly IMapper mapper;
 
         #endregion
 
-        public ModelController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ModelController(IModelService modelService, IMapper mapper)
         {
-            this.unitOfWork = unitOfWork;
+            this.modelService = modelService;
             this.mapper = mapper;
         }
 
@@ -38,8 +39,7 @@ namespace VehicleCatalog.Controllers
             ISort sorting = new Sort() { Sorting = sort };
             IFilter filter = new Filter() { FilterString = search };
 
-            //IPagedList<VehicleModelVM> modelPage = mapper.Map<IPagedList<VehicleModelVM>>(await unitOfWork.ModelService.GetModelsAsync(paging, sorting, filter));
-            IPagedList<Model> modelPage = await unitOfWork.ModelService.GetModelsAsync(paging, sorting, filter);
+            IPagedList<Model> modelPage = await modelService.GetModelsAsync(paging, sorting, filter);
 
             var model = new ModelIndexModel
             {
@@ -65,12 +65,12 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
-                    Model model = await unitOfWork.ModelService.GetModelAsync(id);
+                    Model model = await modelService.GetModelAsync(id);
 
                     DetailModel detailModel = new DetailModel
                     {
                         ModelDetail = mapper.Map<VehicleModelVM>(model),
-                        MakeDetail = mapper.Map<VehicleMakeVM>(await unitOfWork.MakeService.GetMakeAsync(model.MakeId)),
+                        MakeDetail = mapper.Map<VehicleMakeVM>(await modelService.GetMakeAsync(model.MakeId)),
                         Id = model.Id,
                         Abrv = model.Abrv,
                         MakeId = model.MakeId
@@ -100,7 +100,7 @@ namespace VehicleCatalog.Controllers
             ISort sorting = new Sort() { Sorting = sort };
             IFilter filter = new Filter() { FilterString = search };
 
-            IPagedList<Make> makePage = await unitOfWork.MakeService.GetMakesAsync(paging, sorting, filter);
+            IPagedList<Make> makePage = await modelService.GetMakesAsync(paging, sorting, filter);
 
             var make = new SelectMakeModel
             {
@@ -122,7 +122,7 @@ namespace VehicleCatalog.Controllers
         {
             ViewData["Title"] = "Models | Create | ";
 
-            VehicleMakeVM makeForModel = mapper.Map<VehicleMakeVM>(await unitOfWork.MakeService.GetMakeAsync(makeId));
+            VehicleMakeVM makeForModel = mapper.Map<VehicleMakeVM>(await modelService.GetMakeAsync(makeId));
 
             var createModel = new CreateModel
             {
@@ -135,23 +135,15 @@ namespace VehicleCatalog.Controllers
 
         // Adds a record to table Models.
         [HttpPost]
-        public async Task<IActionResult> Create(VehicleModelVM model)
+        public IActionResult Create(VehicleModelVM model)
         {
             try
             {
                 var modelForCreation = mapper.Map<Model>(model);
                 if (ModelState.IsValid)
                 {
-
-                    unitOfWork.ModelService.Create(modelForCreation);
-                    if (await unitOfWork.Commit())
-                    {
-                        return RedirectToAction("Detail", "Model", new { id = modelForCreation.Id });
-                    }
-                    else
-                    {
-                        return BadRequest("Something went wrong");
-                    }
+                    modelService.Create(modelForCreation);
+                    return RedirectToAction("Detail", "Model", new { id = modelForCreation.Id });
                 }
                 else
                 {
@@ -178,16 +170,13 @@ namespace VehicleCatalog.Controllers
 
         // Updates a record from table Models.
         [HttpPost]
-        public async Task<IActionResult> Update(VehicleModelVM model)
+        public IActionResult Update(VehicleModelVM model)
         {
             try
             {
-                unitOfWork.ModelService.Update(mapper.Map<Model>(model));
-                if (await unitOfWork.Commit())
-                {
-                    return RedirectToAction("Detail", "Model", new { id = model.Id });
-                }
-                return BadRequest("Something went wrong");
+                modelService.Update(mapper.Map<Model>(model));
+                return RedirectToAction("Detail", "Model", new { id = model.Id });
+
             }
             catch (Exception)
             {
@@ -200,21 +189,14 @@ namespace VehicleCatalog.Controllers
         #region Delete
 
         // Removes a record from table Models.
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             try
             {
                 if (id.HasValue)
                 {
-                    unitOfWork.ModelService.Delete(id);
-                    if (await unitOfWork.Commit())
-                    {
+                    modelService.Delete(id);
                         return RedirectToAction("Index", "Model");
-                    }
-                    else
-                    {
-                        return BadRequest("Something went wrong, we couldn't delete this model");
-                    }
                 }
                 else
                 {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VehicleCatalog.Service.Models;
 using VehicleCatalog.Service.Repositories;
+using VehicleCatalog.Service.Repositories.Common;
 using VehicleCatalog.Service.Services.Common;
 using X.PagedList;
 
@@ -12,15 +13,18 @@ namespace VehicleCatalog.Service.Services
 {
     public class ModelService : IModelService
     {
+        private readonly IModelRepository modelRepository;
+        private readonly IMakeRepository makeRepository;
+
         #region Fields
 
-        private readonly GenericRepository<Model> modelRepository;
 
         #endregion
 
-        public ModelService(ApplicationDbContex context)
+        public ModelService(IModelRepository modelRepository, IMakeRepository makeRepository)
         {
-            this.modelRepository = new GenericRepository<Model>(context);
+            this.modelRepository = modelRepository;
+            this.makeRepository = makeRepository;
         }
 
         #region Create
@@ -41,34 +45,7 @@ namespace VehicleCatalog.Service.Services
 
         public async Task<IPagedList<Model>> GetModelsAsync(IPagination pagination, ISort sort, IFilter filter)
         {
-            return await modelRepository.GetPagedList(
-                (IQueryable<Model> query) =>
-                    {
-                        if (!String.IsNullOrEmpty(filter.FilterString))
-                        {
-                            query = query.Where(
-                                m => m.Name.Contains(filter.FilterString)
-                                ||
-                                m.Abrv.Contains(filter.FilterString)
-                                ||
-                                m.Make.Name.Contains(filter.FilterString)
-                                );
-                        }
-
-                        switch (sort.Sorting)
-                        {
-                            case "NameDesc":
-                                return query.OrderByDescending(o => o.Name);
-                            case "AbrvAsc":
-                                return query.OrderBy(o => o.Abrv);
-                            case "AbrvDesc":
-                                return query.OrderByDescending(o => o.Abrv);
-                            default:
-                                return query.OrderBy(o => o.Name);
-                        }
-                    },
-                    pagination
-                );
+            return await modelRepository.GetModelsAsync(pagination, sort, filter);
         }
 
         #endregion
@@ -82,14 +59,7 @@ namespace VehicleCatalog.Service.Services
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return await modelRepository.GetSingleItem(
-
-                (IQueryable<Model> query) =>
-                {
-                    return query.Where(m => m.Id == id);
-                }
-
-                );
+            return await modelRepository.GetModelAsync(id);
         }
 
         #endregion
@@ -120,7 +90,6 @@ namespace VehicleCatalog.Service.Services
             modelRepository.Update(model);
         }
 
-
         public void UpdateModels(Make make)
         {
             if (make == null)
@@ -128,22 +97,28 @@ namespace VehicleCatalog.Service.Services
                 throw new ArgumentNullException(nameof(make));
             }
 
-            modelRepository.UpdateRange
-                (
-                    (IQueryable<Model> query, DbSet<Model> dbSet) =>
-                    {
-                        IEnumerable<Model> TCollection = query.Where(m => m.MakeId == make.Id);
-
-                        foreach (var TItem in TCollection)
-                        {
-                            TItem.Abrv = make.Abrv;
-                            dbSet.Update(TItem);
-                        }
-                    }
-                );
-        }
+            modelRepository.UpdateModels(make);
+           }
 
         #endregion
 
+        #region Make
+
+        public async Task<Make> GetMakeAsync(int? id)
+        {
+            if (id is null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            return await makeRepository.GetMakeAsync(id);
+        }
+
+        public async Task<IPagedList<Make>> GetMakesAsync(IPagination pagination, ISort sort, IFilter filter)
+        {
+            return await makeRepository.GetMakesAsync(pagination, sort, filter);
+        }
+        
+        #endregion
     }
 }

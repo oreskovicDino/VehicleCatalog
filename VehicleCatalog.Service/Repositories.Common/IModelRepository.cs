@@ -1,10 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 using VehicleCatalog.Service.Models;
 using X.PagedList;
 
-namespace VehicleCatalog.Service.Services.Common
+namespace VehicleCatalog.Service.Repositories.Common
 {
-    public interface IModelService
+    public interface IModelRepository
     {
         void Create(Model model);
 
@@ -17,10 +20,5 @@ namespace VehicleCatalog.Service.Services.Common
         void Update(Model model);
 
         void UpdateModels(Make make);
-
-        Task<Make> GetMakeAsync(int? id);
-
-        Task<IPagedList<Make>> GetMakesAsync(IPagination pagination, ISort sort, IFilter flter);
-
     }
 }

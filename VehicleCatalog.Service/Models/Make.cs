@@ -10,6 +10,5 @@ namespace VehicleCatalog.Service.Models
         public string Abrv { get; set; }
 
         public ICollection<Model> Models { get; set; }
-        
     }
 }

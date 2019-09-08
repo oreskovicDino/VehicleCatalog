@@ -6,6 +6,7 @@ using VehicleCatalog.Models;
 using VehicleCatalog.Models.MakeView;
 using VehicleCatalog.Service;
 using VehicleCatalog.Service.Models;
+using VehicleCatalog.Service.Services.Common;
 using X.PagedList;
 
 namespace VehicleCatalog.Controllers
@@ -16,14 +17,14 @@ namespace VehicleCatalog.Controllers
         #region Fields
 
         private readonly IMapper mapper;
-        private readonly IUnitOfWork unitOfWork;
+        private readonly IMakeService makeService;
 
         #endregion
 
-        public MakeController(IMapper mapper, IUnitOfWork unitOfWork)
+        public MakeController(IMapper mapper, IMakeService makeService)
         {
             this.mapper = mapper;
-            this.unitOfWork = unitOfWork;
+            this.makeService = makeService;
         }
 
         #region Index
@@ -38,8 +39,7 @@ namespace VehicleCatalog.Controllers
             ISort sorting = new Sort() { Sorting = sort };
             IFilter filter = new Filter() { FilterString = search };
 
-            //IPagedList<VehicleMakeVM> makePage = mapper.Map<IPagedList<VehicleMakeVM>>(pp);
-            var makePage = await unitOfWork.MakeService.GetMakesAsync(paging, sorting, filter);
+            var makePage = await makeService.GetPagedMakesAsync(paging, sorting, filter);
 
             var make = new MakeIndexModel
             {
@@ -62,21 +62,19 @@ namespace VehicleCatalog.Controllers
         {
             ViewData["Title"] = "Manufacturer | Detail | ";
 
-            IPagination paging = new Pagination { CurrentPage = page };
+            //IPagination paging = new Pagination { CurrentPage = page };
 
             try
             {
                 if (id.HasValue)
                 {
-                    Make make = await unitOfWork.MakeService.GetMakeAsync(id);
-                    IPagedList<Model> models = await unitOfWork.MakeService.GetModelsByMake(make, paging);
-
+                    Make make = await makeService.GetMakeAsync(id);
 
                     var makeDetail = new MakeDetailModel
                     {
                         MakeDetail = mapper.Map<VehicleMakeVM>(make),
-                        ModelList = models
-                    };
+                        ModelList = await make.Models.ToPagedListAsync((page ?? 1), (7))
+                };
                     return View(makeDetail);
                 }
                 else
@@ -106,29 +104,24 @@ namespace VehicleCatalog.Controllers
         // Adds a record to table Makes.
         //
         [HttpPost]
-        public async Task<IActionResult> Create(VehicleMakeVM make)
+        public  IActionResult Create(VehicleMakeVM make)
         {
             try
             {
                 var makeForCreation = mapper.Map<Make>(make);
                 if (ModelState.IsValid)
                 {
-                    unitOfWork.MakeService.Create(makeForCreation);
-                    if (await unitOfWork.Commit())
-                    {
-                        return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
-                    }
-                    else
-                    {
-                        return BadRequest("Something went wrong");
-                    }
+                    makeService.Create(makeForCreation);
+
+                    return RedirectToAction("Detail", "Make", new { id = makeForCreation.Id });
+                    
                 }
 
                 return View();
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                return BadRequest("Something went wrong     " + e);
             }
         }
 
@@ -146,7 +139,7 @@ namespace VehicleCatalog.Controllers
             {
                 if (id.HasValue)
                 {
-                    var make = await unitOfWork.MakeService.GetMakeAsync(id);
+                    var make = await makeService.GetMakeAsync(id);
 
                     var makeDetail = new MakeUpdateModel
                     {
@@ -171,25 +164,19 @@ namespace VehicleCatalog.Controllers
         // Updates a record from table Makes.
         //
         [HttpPost]
-        public async Task<IActionResult> Update(VehicleMakeVM make)
+        public IActionResult Update(VehicleMakeVM make)
         {
             try
             {
                 Make makeForupdate = mapper.Map<Make>(make);
-                unitOfWork.MakeService.Update(makeForupdate);
-                unitOfWork.ModelService.UpdateModels(makeForupdate);
+                makeService.Update(makeForupdate);
+                makeService.UpdateModels(makeForupdate);
 
-                if (await unitOfWork.Commit())
-                {
-                    return RedirectToAction("Detail", "Make", new { id = make.Id });
-                }
-
-                return BadRequest("Something went wrong");
-
+                return RedirectToAction("Detail", "Make", new { id = make.Id });
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                return BadRequest("Something went wrong" + e);
             }
         }
 
@@ -198,23 +185,14 @@ namespace VehicleCatalog.Controllers
         #region Delete
 
         // Removes a record from table Makes.
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             try
             {
                 if (id.HasValue)
                 {
-                    unitOfWork.MakeService.Delete(id);
-
-                    if (await unitOfWork.Commit())
-                    {
-                        return RedirectToAction("Index", "Make");
-                    }
-                    else
-                    {
-                        return BadRequest("Something went wrong, we couldn't delete this manufacturer");
-                    }
-
+                    makeService.Delete(id);
+                    return RedirectToAction("Index", "Make");
                 }
                 else
                 {
@@ -223,7 +201,6 @@ namespace VehicleCatalog.Controllers
             }
             catch (Exception e)
             {
-
                 return BadRequest(e);
             }
         }
